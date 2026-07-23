@@ -119,7 +119,7 @@ export const BENEFITS = [
     description: 'Sem espera e sem complicação.',
   },
   {
-    title: '2 modelos',
-    description: 'Escolha entre Moderno e Clássico.',
+    title: '2 modelos + foto',
+    description: 'Moderno OPEN ou Executivo, com foto opcional e prévia ao vivo.',
   },
 ]
