@@ -8,15 +8,15 @@ export const TEMPLATES: {
 }[] = [
   {
     id: 'moderno',
-    name: 'Moderno OPEN',
-    description: 'Barra cyan, destaque magenta e visual chamativo — ideal com foto.',
-    preview: 'linear-gradient(135deg,#00AEEF 0%,#0085CC 55%,#EC008C 120%)',
+    name: 'Corporativo Cinza',
+    description: 'Sidebar grafite e acentos prata — visual chamativo para empresas.',
+    preview: 'linear-gradient(135deg,#1f2937 0%,#374151 45%,#9ca3af 100%)',
   },
   {
     id: 'classico',
-    name: 'Executivo',
-    description: 'Cabeçalho sofisticado em charcoal e detalhes dourados — elegante e profissional.',
-    preview: 'linear-gradient(135deg,#1c2026 0%,#3a3f48 60%,#b0894a 140%)',
+    name: 'Executivo Grafite',
+    description: 'Cabeçalho premium em cinza escuro — elegante e corporativo.',
+    preview: 'linear-gradient(135deg,#111827 0%,#1f2937 50%,#6b7280 100%)',
   },
 ]
 
@@ -120,6 +120,6 @@ export const BENEFITS = [
   },
   {
     title: '2 modelos + foto',
-    description: 'Moderno OPEN ou Executivo, com foto opcional e prévia ao vivo.',
+    description: 'Corporativo Cinza ou Executivo Grafite, com foto opcional e prévia ao vivo.',
   },
 ]
