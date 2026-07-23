@@ -7,11 +7,11 @@ import { Container } from '@/components/ui/Container'
 import { Field, Input, Textarea, Select } from '@/components/ui/Input'
 import { BirthDatePicker, MonthYearPicker, YearPicker } from '@/components/ui/DatePickers'
 import { useAppStore } from '@/store/appStore'
-import { TEMPLATES } from '@/data/constants'
+import { MARITAL_STATUS, TEMPLATES } from '@/data/constants'
 import { enhanceResumeWithAI } from '@/lib/openrouter'
-import type { Course, Education, Experience, Language, TemplateId } from '@/types'
+import type { Course, Education, Experience, TemplateId } from '@/types'
 
-const steps = ['Dados', 'Experiência', 'Formação', 'Habilidades', 'Modelo & IA']
+const steps = ['Dados', 'Formação', 'Experiência', 'Modelo']
 
 function newId() {
   return crypto.randomUUID()
@@ -23,7 +23,6 @@ export function CreateResumePage() {
   const { resume, setResume, replaceResume, loadDemo, saveCurrentResume } = useAppStore()
   const [step, setStep] = useState(0)
   const [enhancing, setEnhancing] = useState(false)
-  const [skillInput, setSkillInput] = useState('')
 
   useEffect(() => {
     if (params.get('demo') === '1') loadDemo()
@@ -32,6 +31,22 @@ export function CreateResumePage() {
   }, [params, loadDemo, setResume])
 
   const progress = useMemo(() => ((step + 1) / steps.length) * 100, [step])
+
+  const addEducation = () =>
+    setResume({
+      education: [...resume.education, { id: newId(), institution: '', course: '', year: '' }],
+    })
+
+  const updateEdu = (id: string, patch: Partial<Education>) =>
+    setResume({ education: resume.education.map((e) => (e.id === id ? { ...e, ...patch } : e)) })
+
+  const addCourse = () =>
+    setResume({
+      courses: [...resume.courses, { id: newId(), name: '', institution: '', year: '' }],
+    })
+
+  const updateCourse = (id: string, patch: Partial<Course>) =>
+    setResume({ courses: resume.courses.map((c) => (c.id === id ? { ...c, ...patch } : c)) })
 
   const addExperience = () =>
     setResume({
@@ -46,49 +61,13 @@ export function CreateResumePage() {
       experiences: resume.experiences.map((e) => (e.id === id ? { ...e, ...patch } : e)),
     })
 
-  const addEducation = () =>
-    setResume({
-      education: [
-        ...resume.education,
-        { id: newId(), institution: '', course: '', level: 'Graduação', startDate: '', endDate: '' },
-      ],
-    })
-
-  const updateEdu = (id: string, patch: Partial<Education>) =>
-    setResume({
-      education: resume.education.map((e) => (e.id === id ? { ...e, ...patch } : e)),
-    })
-
-  const addCourse = () =>
-    setResume({
-      courses: [...resume.courses, { id: newId(), name: '', institution: '', year: '' }],
-    })
-
-  const updateCourse = (id: string, patch: Partial<Course>) =>
-    setResume({
-      courses: resume.courses.map((c) => (c.id === id ? { ...c, ...patch } : c)),
-    })
-
-  const addLanguage = () =>
-    setResume({
-      languages: [...resume.languages, { id: newId(), name: '', level: 'Básico' }],
-    })
-
-  const updateLang = (id: string, patch: Partial<Language>) =>
-    setResume({
-      languages: resume.languages.map((l) => (l.id === id ? { ...l, ...patch } : l)),
-    })
-
   const runAI = async () => {
     setEnhancing(true)
     try {
       const result = await enhanceResumeWithAI(resume)
       replaceResume({
         ...resume,
-        objective: result.objective,
         professionalSummary: result.professionalSummary,
-        skills: result.skills.length ? result.skills : resume.skills,
-        keywords: result.keywords,
         experiences: resume.experiences.map((e) => {
           const improved = result.experiences.find((x) => x.id === e.id)
           return improved ? { ...e, description: improved.description } : e
@@ -109,9 +88,9 @@ export function CreateResumePage() {
     <div className="py-10">
       <Container className="max-w-3xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-ink-900 dark:text-white">Monte seu currículo</h1>
+          <h1 className="text-3xl font-bold text-ink-900 dark:text-white">Criar currículo</h1>
           <p className="mt-2 text-ink-600 dark:text-ink-300">
-            Preencha os campos — a IA corrige e aprimora tudo antes do PDF.
+            Simples e rápido — preencha os dados essenciais e gere o PDF.
           </p>
           <div className="mt-6 h-2 overflow-hidden rounded-full bg-ink-200 dark:bg-ink-800">
             <motion.div
@@ -143,36 +122,133 @@ export function CreateResumePage() {
         <div className="rounded-2xl border border-ink-200 bg-white p-6 shadow-sm dark:border-ink-700 dark:bg-ink-900 sm:p-8">
           {step === 0 && (
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Nome completo">
-                <Input value={resume.fullName} onChange={(e) => setResume({ fullName: e.target.value })} placeholder="Seu nome" />
-              </Field>
-              <Field label="Data de nascimento">
+              <div className="sm:col-span-2">
+                <Field label="Nome completo">
+                  <Input
+                    value={resume.fullName}
+                    onChange={(e) => setResume({ fullName: e.target.value })}
+                    placeholder="Seu nome completo"
+                  />
+                </Field>
+              </div>
+              <div className="sm:col-span-2">
+                <Field label="Endereço">
+                  <Input
+                    value={resume.address}
+                    onChange={(e) => setResume({ address: e.target.value })}
+                    placeholder="Rua, número — Cidade, UF"
+                  />
+                </Field>
+              </div>
+              <Field label="Nascimento">
                 <BirthDatePicker
                   value={resume.birthDate}
                   onChange={(birthDate) => setResume({ birthDate })}
                 />
               </Field>
+              <Field label="Nacionalidade">
+                <Input
+                  value={resume.nationality}
+                  onChange={(e) => setResume({ nationality: e.target.value })}
+                  placeholder="Brasileira"
+                />
+              </Field>
+              <Field label="Estado civil">
+                <Select
+                  value={resume.maritalStatus}
+                  onChange={(e) => setResume({ maritalStatus: e.target.value })}
+                >
+                  {MARITAL_STATUS.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </Select>
+              </Field>
               <Field label="Telefone">
-                <Input value={resume.phone} onChange={(e) => setResume({ phone: e.target.value })} placeholder="(11) 99999-9999" />
-              </Field>
-              <Field label="E-mail">
-                <Input type="email" value={resume.email} onChange={(e) => setResume({ email: e.target.value })} placeholder="voce@email.com" />
-              </Field>
-              <Field label="Cidade">
-                <Input value={resume.city} onChange={(e) => setResume({ city: e.target.value })} placeholder="São Paulo, SP" />
+                <Input
+                  value={resume.phone}
+                  onChange={(e) => setResume({ phone: e.target.value })}
+                  placeholder="(11) 99999-9999"
+                />
               </Field>
               <div className="sm:col-span-2">
-                <Field label="Objetivo profissional">
-                  <Textarea value={resume.objective} onChange={(e) => setResume({ objective: e.target.value })} placeholder="Quero atuar como..." />
+                <Field label="E-mail">
+                  <Input
+                    type="email"
+                    value={resume.email}
+                    onChange={(e) => setResume({ email: e.target.value })}
+                    placeholder="voce@email.com"
+                  />
                 </Field>
               </div>
             </div>
           )}
 
           {step === 1 && (
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <p className="font-semibold">Escolaridade</p>
+                {resume.education.length === 0 && (
+                  <p className="text-sm text-ink-500">Adicione sua formação (ensino médio, faculdade…).</p>
+                )}
+                {resume.education.map((ed, idx) => (
+                  <div key={ed.id} className="grid gap-3 border-b border-ink-100 pb-4 dark:border-ink-800 sm:grid-cols-2">
+                    <div className="flex items-center justify-between sm:col-span-2">
+                      <p className="text-sm font-medium text-ink-500">Item {idx + 1}</p>
+                      <button type="button" onClick={() => setResume({ education: resume.education.filter((x) => x.id !== ed.id) })}>
+                        <Trash2 className="size-4 text-red-500" />
+                      </button>
+                    </div>
+                    <Field label="Curso / Nível">
+                      <Input value={ed.course} onChange={(e) => updateEdu(ed.id, { course: e.target.value })} placeholder="Ex: Ensino Médio / Administração" />
+                    </Field>
+                    <Field label="Instituição">
+                      <Input value={ed.institution} onChange={(e) => updateEdu(ed.id, { institution: e.target.value })} />
+                    </Field>
+                    <Field label="Ano de conclusão">
+                      <YearPicker value={ed.year} onChange={(year) => updateEdu(ed.id, { year })} />
+                    </Field>
+                  </div>
+                ))}
+                <Button type="button" variant="secondary" onClick={addEducation}>
+                  <Plus className="size-4" /> Adicionar escolaridade
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                <p className="font-semibold">Cursos</p>
+                {resume.courses.map((c, idx) => (
+                  <div key={c.id} className="grid gap-3 sm:grid-cols-3">
+                    <Field label={`Curso ${idx + 1}`}>
+                      <Input value={c.name} onChange={(e) => updateCourse(c.id, { name: e.target.value })} />
+                    </Field>
+                    <Field label="Instituição">
+                      <Input value={c.institution} onChange={(e) => updateCourse(c.id, { institution: e.target.value })} />
+                    </Field>
+                    <div className="flex items-end gap-2">
+                      <div className="flex-1">
+                        <Field label="Ano">
+                          <YearPicker value={c.year} onChange={(year) => updateCourse(c.id, { year })} />
+                        </Field>
+                      </div>
+                      <Button type="button" variant="ghost" onClick={() => setResume({ courses: resume.courses.filter((x) => x.id !== c.id) })}>
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                <Button type="button" variant="secondary" onClick={addCourse}>
+                  <Plus className="size-4" /> Adicionar curso
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
             <div className="space-y-6">
               {resume.experiences.length === 0 && (
-                <p className="text-sm text-ink-500">Nenhuma experiência ainda. Adicione a primeira ou pule se for primeiro emprego.</p>
+                <p className="text-sm text-ink-500">
+                  Sem experiência? Pode pular — ideal para primeiro emprego.
+                </p>
               )}
               {resume.experiences.map((exp, idx) => (
                 <div key={exp.id} className="space-y-3 border-b border-ink-100 pb-6 dark:border-ink-800">
@@ -183,13 +259,14 @@ export function CreateResumePage() {
                     </button>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <Field label="Empresa"><Input value={exp.company} onChange={(e) => updateExp(exp.id, { company: e.target.value })} /></Field>
-                    <Field label="Cargo"><Input value={exp.role} onChange={(e) => updateExp(exp.id, { role: e.target.value })} /></Field>
+                    <Field label="Empresa">
+                      <Input value={exp.company} onChange={(e) => updateExp(exp.id, { company: e.target.value })} />
+                    </Field>
+                    <Field label="Cargo">
+                      <Input value={exp.role} onChange={(e) => updateExp(exp.id, { role: e.target.value })} />
+                    </Field>
                     <Field label="Início">
-                      <MonthYearPicker
-                        value={exp.startDate}
-                        onChange={(startDate) => updateExp(exp.id, { startDate })}
-                      />
+                      <MonthYearPicker value={exp.startDate} onChange={(startDate) => updateExp(exp.id, { startDate })} />
                     </Field>
                     <Field label="Fim">
                       <MonthYearPicker
@@ -199,12 +276,20 @@ export function CreateResumePage() {
                       />
                     </Field>
                     <label className="flex items-center gap-2 text-sm sm:col-span-2">
-                      <input type="checkbox" checked={exp.current} onChange={(e) => updateExp(exp.id, { current: e.target.checked })} />
+                      <input
+                        type="checkbox"
+                        checked={exp.current}
+                        onChange={(e) => updateExp(exp.id, { current: e.target.checked, endDate: e.target.checked ? '' : exp.endDate })}
+                      />
                       Trabalho atual
                     </label>
                     <div className="sm:col-span-2">
-                      <Field label="Descrição">
-                        <Textarea value={exp.description} onChange={(e) => updateExp(exp.id, { description: e.target.value })} />
+                      <Field label="Descrição (opcional)">
+                        <Textarea
+                          value={exp.description}
+                          onChange={(e) => updateExp(exp.id, { description: e.target.value })}
+                          placeholder="O que você fazia no dia a dia"
+                        />
                       </Field>
                     </div>
                   </div>
@@ -216,109 +301,7 @@ export function CreateResumePage() {
             </div>
           )}
 
-          {step === 2 && (
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <p className="font-semibold">Escolaridade</p>
-                {resume.education.map((ed) => (
-                  <div key={ed.id} className="grid gap-3 sm:grid-cols-2">
-                    <Field label="Instituição"><Input value={ed.institution} onChange={(e) => updateEdu(ed.id, { institution: e.target.value })} /></Field>
-                    <Field label="Curso"><Input value={ed.course} onChange={(e) => updateEdu(ed.id, { course: e.target.value })} /></Field>
-                    <Field label="Nível">
-                      <Select value={ed.level} onChange={(e) => updateEdu(ed.id, { level: e.target.value })}>
-                        {['Ensino Médio', 'Técnico', 'Graduação', 'Pós-graduação', 'Mestrado', 'Doutorado'].map((l) => (
-                          <option key={l}>{l}</option>
-                        ))}
-                      </Select>
-                    </Field>
-                    <div className="flex items-end">
-                      <Button type="button" variant="ghost" onClick={() => setResume({ education: resume.education.filter((x) => x.id !== ed.id) })}>
-                        <Trash2 className="size-4" /> Remover
-                      </Button>
-                    </div>
-                    <Field label="Início">
-                      <MonthYearPicker
-                        value={ed.startDate}
-                        onChange={(startDate) => updateEdu(ed.id, { startDate })}
-                      />
-                    </Field>
-                    <Field label="Fim">
-                      <MonthYearPicker
-                        value={ed.endDate}
-                        onChange={(endDate) => updateEdu(ed.id, { endDate })}
-                      />
-                    </Field>
-                  </div>
-                ))}
-                <Button type="button" variant="secondary" onClick={addEducation}><Plus className="size-4" /> Escolaridade</Button>
-              </div>
-
-              <div className="space-y-4">
-                <p className="font-semibold">Cursos</p>
-                {resume.courses.map((c) => (
-                  <div key={c.id} className="grid gap-3 sm:grid-cols-3">
-                    <Field label="Nome"><Input value={c.name} onChange={(e) => updateCourse(c.id, { name: e.target.value })} /></Field>
-                    <Field label="Instituição"><Input value={c.institution} onChange={(e) => updateCourse(c.id, { institution: e.target.value })} /></Field>
-                    <Field label="Ano">
-                      <YearPicker value={c.year} onChange={(year) => updateCourse(c.id, { year })} />
-                    </Field>
-                  </div>
-                ))}
-                <Button type="button" variant="secondary" onClick={addCourse}><Plus className="size-4" /> Curso</Button>
-              </div>
-            </div>
-          )}
-
           {step === 3 && (
-            <div className="space-y-6">
-              <Field label="Habilidades" hint="Digite e pressione Enter">
-                <Input
-                  value={skillInput}
-                  onChange={(e) => setSkillInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && skillInput.trim()) {
-                      e.preventDefault()
-                      setResume({ skills: [...resume.skills, skillInput.trim()] })
-                      setSkillInput('')
-                    }
-                  }}
-                  placeholder="Ex: Excel, Comunicação..."
-                />
-              </Field>
-              <div className="flex flex-wrap gap-2">
-                {resume.skills.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className="rounded-lg bg-brand-100 px-3 py-1 text-sm text-brand-800 dark:bg-brand-900/40 dark:text-brand-200"
-                    onClick={() => setResume({ skills: resume.skills.filter((x) => x !== s) })}
-                  >
-                    {s} ×
-                  </button>
-                ))}
-              </div>
-
-              <div className="space-y-3">
-                <p className="font-semibold">Idiomas</p>
-                {resume.languages.map((l) => (
-                  <div key={l.id} className="grid grid-cols-[1fr_1fr_auto] gap-2">
-                    <Input value={l.name} placeholder="Idioma" onChange={(e) => updateLang(l.id, { name: e.target.value })} />
-                    <Select value={l.level} onChange={(e) => updateLang(l.id, { level: e.target.value })}>
-                      {['Básico', 'Intermediário', 'Avançado', 'Fluente', 'Nativo'].map((lv) => (
-                        <option key={lv}>{lv}</option>
-                      ))}
-                    </Select>
-                    <Button type="button" variant="ghost" onClick={() => setResume({ languages: resume.languages.filter((x) => x.id !== l.id) })}>
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button type="button" variant="secondary" onClick={addLanguage}><Plus className="size-4" /> Idioma</Button>
-              </div>
-            </div>
-          )}
-
-          {step === 4 && (
             <div className="space-y-6">
               <div>
                 <p className="mb-3 font-semibold">Escolha o modelo</p>
@@ -342,21 +325,21 @@ export function CreateResumePage() {
               </div>
 
               <div className="rounded-xl bg-brand-50 p-4 dark:bg-brand-950/30">
-                <p className="font-semibold text-brand-900 dark:text-brand-100">Melhorar com IA (Gemini via OpenRouter)</p>
+                <p className="font-semibold text-brand-900 dark:text-brand-100">Melhorar textos com IA</p>
                 <p className="mt-1 text-sm text-brand-800/80 dark:text-brand-200/80">
-                  Corrige português, sugere palavras-chave e cria resumo profissional.
+                  Opcional: corrige português e cria um resumo profissional.
                 </p>
                 <Button className="mt-3" variant="accent" loading={enhancing} onClick={runAI}>
-                  <Sparkles className="size-4" /> {resume.aiEnhanced ? 'Melhorar novamente' : 'Melhorar textos com IA'}
+                  <Sparkles className="size-4" /> {resume.aiEnhanced ? 'Melhorar novamente' : 'Melhorar com IA'}
                 </Button>
                 {resume.professionalSummary && (
-                  <div className="mt-4 space-y-2">
-                    <Field label="Resumo profissional gerado">
-                      <Textarea value={resume.professionalSummary} onChange={(e) => setResume({ professionalSummary: e.target.value })} />
+                  <div className="mt-4">
+                    <Field label="Resumo profissional">
+                      <Textarea
+                        value={resume.professionalSummary}
+                        onChange={(e) => setResume({ professionalSummary: e.target.value })}
+                      />
                     </Field>
-                    {resume.keywords.length > 0 && (
-                      <p className="text-xs text-ink-500">Palavras-chave: {resume.keywords.join(', ')}</p>
-                    )}
                   </div>
                 )}
               </div>
@@ -373,14 +356,16 @@ export function CreateResumePage() {
               </Button>
             ) : (
               <Button onClick={goCheckout}>
-                Ir para pagamento <ArrowRight className="size-4" />
+                Ir para pagamento Pix <ArrowRight className="size-4" />
               </Button>
             )}
           </div>
         </div>
 
         <div className="mt-4 flex justify-end">
-          <Button variant="secondary" size="sm" onClick={loadDemo}>Preencher com dados de demonstração</Button>
+          <Button variant="secondary" size="sm" onClick={loadDemo}>
+            Preencher demonstração
+          </Button>
         </div>
       </Container>
     </div>

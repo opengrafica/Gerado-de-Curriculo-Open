@@ -75,7 +75,7 @@ export function LoginPage() {
     <div className="py-16">
       <Container className="max-w-md">
         <h1 className="text-3xl font-bold text-ink-900 dark:text-white">Entrar</h1>
-        <p className="mt-2 text-ink-600 dark:text-ink-300">Acesse sua conta CurrículoJá.</p>
+        <p className="mt-2 text-ink-600 dark:text-ink-300">Acesse sua conta Currículo OPEN.</p>
         <form onSubmit={submit} className="mt-8 space-y-4 rounded-2xl border border-ink-200 bg-white p-6 dark:border-ink-700 dark:bg-ink-900">
           <Field label="E-mail">
             <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />

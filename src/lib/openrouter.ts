@@ -9,76 +9,45 @@ export const isOpenRouterConfigured = Boolean(
 )
 
 export interface AiEnhanceResult {
-  objective: string
   professionalSummary: string
   experiences: { id: string; description: string }[]
-  keywords: string[]
-  skills: string[]
 }
 
 function mockEnhance(data: ResumeData): AiEnhanceResult {
-  const roleHint = data.experiences[0]?.role || data.objective.slice(0, 40) || 'profissional'
+  const role = data.experiences[0]?.role || 'profissional'
   return {
-    objective: data.objective
-      ? `${data.objective.replace(/\.$/, '')}. Comprometida(o) com resultados, aprendizado contínuo e contribuição para o crescimento da equipe.`
-      : `Busco oportunidade como ${roleHint}, aplicando minhas habilidades para gerar impacto positivo e resultados mensuráveis.`,
     professionalSummary: data.professionalSummary
       ? data.professionalSummary
-      : `${data.fullName || 'Profissional'} com atuação em ${data.city || 'sua região'}, experiência em ${roleHint} e foco em entrega de qualidade. Habilidades em comunicação, organização e resolução de problemas.`,
+      : `${data.fullName || 'Profissional'} ${data.nationality ? `(${data.nationality})` : ''}, com formação e experiência em ${role}. Comunicativa, organizada e pronta para contribuir com resultados.`.replace(/\s+/g, ' ').trim(),
     experiences: data.experiences.map((exp) => ({
       id: exp.id,
       description:
         exp.description ||
-        `Responsável por atividades de ${exp.role} na ${exp.company}, com foco em produtividade, colaboração e melhoria contínua dos processos.`,
+        `Atuação como ${exp.role || 'colaborador(a)'} na ${exp.company || 'empresa'}, com foco em qualidade, atendimento e cumprimento de metas.`,
     })),
-    keywords: [
-      ...new Set([
-        ...data.skills.slice(0, 5),
-        'proatividade',
-        'trabalho em equipe',
-        'comunicação',
-        'organização',
-        roleHint.toLowerCase().split(' ')[0],
-      ]),
-    ].filter(Boolean),
-    skills: data.skills.length
-      ? data.skills
-      : ['Comunicação', 'Organização', 'Pacote Office', 'Trabalho em equipe'],
   }
 }
 
 export async function enhanceResumeWithAI(data: ResumeData): Promise<AiEnhanceResult> {
   if (!isOpenRouterConfigured) {
-    await new Promise((r) => setTimeout(r, 800))
+    await new Promise((r) => setTimeout(r, 700))
     return mockEnhance(data)
   }
 
-  const prompt = `Você é um especialista em RH e redação de currículos no Brasil.
-Melhore o currículo abaixo:
-- Corrija português
-- Torne textos mais profissionais e persuasivos
-- Sugira palavras-chave ATS
-- Crie um resumo profissional forte
-
-Retorne APENAS JSON válido no formato:
-{
-  "objective": "...",
-  "professionalSummary": "...",
-  "experiences": [{"id":"...","description":"..."}],
-  "keywords": ["..."],
-  "skills": ["..."]
-}
+  const prompt = `Você é especialista em currículos no Brasil.
+Melhore o currículo abaixo: corrija português, torne textos profissionais e crie um resumo curto.
+Retorne APENAS JSON:
+{"professionalSummary":"...","experiences":[{"id":"...","description":"..."}]}
 
 Dados:
 ${JSON.stringify({
     fullName: data.fullName,
-    city: data.city,
-    objective: data.objective,
-    experiences: data.experiences,
+    address: data.address,
+    nationality: data.nationality,
+    maritalStatus: data.maritalStatus,
     education: data.education,
     courses: data.courses,
-    skills: data.skills,
-    languages: data.languages,
+    experiences: data.experiences,
   })}`
 
   try {
@@ -88,7 +57,7 @@ ${JSON.stringify({
         Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': window.location.origin,
-        'X-Title': 'CurriculoJa',
+        'X-Title': 'Curriculo OPEN',
       },
       body: JSON.stringify({
         model: MODEL,
@@ -96,17 +65,13 @@ ${JSON.stringify({
         response_format: { type: 'json_object' },
       }),
     })
-
     if (!res.ok) throw new Error(`OpenRouter ${res.status}`)
     const json = await res.json()
     const content = json.choices?.[0]?.message?.content
     const parsed = typeof content === 'string' ? JSON.parse(content) : content
     return {
-      objective: parsed.objective || data.objective,
       professionalSummary: parsed.professionalSummary || '',
       experiences: parsed.experiences || [],
-      keywords: parsed.keywords || [],
-      skills: parsed.skills || data.skills,
     }
   } catch {
     return mockEnhance(data)

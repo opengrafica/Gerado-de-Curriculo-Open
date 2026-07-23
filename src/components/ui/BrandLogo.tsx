@@ -1,0 +1,57 @@
+import { clsx } from 'clsx'
+
+/** Logo Currículo OPEN / Open Gráfica (lâmpada CMYK) */
+export function BrandLogo({
+  className,
+  showWordmark = true,
+  size = 36,
+}: {
+  className?: string
+  showWordmark?: boolean
+  size?: number
+}) {
+  return (
+    <span className={clsx('inline-flex items-center gap-2', className)}>
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 64 64"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden
+      >
+        <circle cx="32" cy="32" r="32" fill="#111111" />
+        {/* rays */}
+        <path d="M32 8v4M22 12l2.5 3.5M42 12l-2.5 3.5" stroke="#FFF200" strokeWidth="2.5" strokeLinecap="round" />
+        {/* bulb */}
+        <path
+          d="M20 30c0-7.2 5.4-12 12-12s12 4.8 12 12c0 4.2-2 7.2-4.5 9.5-.8.7-1.5 1.8-1.5 3v1.5H26V42.5c0-1.2-.7-2.3-1.5-3C22 37.2 20 34.2 20 30z"
+          stroke="white"
+          strokeWidth="2.2"
+          fill="none"
+        />
+        {/* OPEN letters CMYK-ish */}
+        <text x="21" y="33" fontFamily="Arial Black, Arial, sans-serif" fontSize="8" fontWeight="900">
+          <tspan fill="#00AEEF">O</tspan>
+          <tspan fill="#EC008C">P</tspan>
+          <tspan fill="#FFF200">E</tspan>
+          <tspan fill="#FFFFFF">N</tspan>
+        </text>
+        {/* base CMY */}
+        <rect x="26" y="44.5" width="12" height="2.2" rx="0.5" fill="#00AEEF" />
+        <rect x="26" y="47.5" width="12" height="2.2" rx="0.5" fill="#EC008C" />
+        <rect x="26" y="50.5" width="12" height="2.2" rx="0.5" fill="#FFF200" />
+      </svg>
+      {showWordmark && (
+        <span className="leading-tight">
+          <span className="block text-lg font-extrabold tracking-tight text-ink-900 dark:text-white">
+            Currículo <span className="text-[#00AEEF]">OPEN</span>
+          </span>
+          <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-400">
+            Open Gráfica
+          </span>
+        </span>
+      )}
+    </span>
+  )
+}

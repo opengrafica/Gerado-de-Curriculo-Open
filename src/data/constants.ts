@@ -6,16 +6,16 @@ export const TEMPLATES: {
   description: string
   preview: string
 }[] = [
-  { id: 'moderno', name: 'Moderno', description: 'Layout limpo com destaque em teal.', preview: '#0d9476' },
-  { id: 'classico', name: 'Clássico', description: 'Tipografia serifada e estrutura tradicional.', preview: '#3a4251' },
-  { id: 'executivo', name: 'Executivo', description: 'Sofisticado para cargos de liderança.', preview: '#1e3a5f' },
-  { id: 'minimalista', name: 'Minimalista', description: 'Espaço em branco e tipografia leve.', preview: '#525252' },
-  { id: 'azul', name: 'Azul', description: 'Paleta azul corporativa.', preview: '#2563eb' },
-  { id: 'preto', name: 'Preto', description: 'Alto contraste e visual impactante.', preview: '#171717' },
-  { id: 'criativo', name: 'Criativo', description: 'Toques de cor e seções dinâmicas.', preview: '#ea580c' },
-  { id: 'jovem-aprendiz', name: 'Jovem Aprendiz', description: 'Foco em potencial e formação.', preview: '#0891b2' },
-  { id: 'primeiro-emprego', name: 'Primeiro Emprego', description: 'Valoriza cursos e habilidades.', preview: '#059669' },
-  { id: 'corporativo', name: 'Corporativo', description: 'Padrão ATS-friendly para empresas.', preview: '#0f7661' },
+  { id: 'moderno', name: 'Moderno', description: 'Limpo e atual.', preview: '#00AEEF' },
+  { id: 'classico', name: 'Clássico', description: 'Tradicional e elegante.', preview: '#111111' },
+  { id: 'executivo', name: 'Executivo', description: 'Sofisticado para liderança.', preview: '#1e3a5f' },
+  { id: 'minimalista', name: 'Minimalista', description: 'Espaçoso e direto.', preview: '#525252' },
+  { id: 'azul', name: 'Azul', description: 'Tom corporativo cyan.', preview: '#00AEEF' },
+  { id: 'preto', name: 'Preto', description: 'Alto contraste.', preview: '#111111' },
+  { id: 'criativo', name: 'Criativo', description: 'Toque magenta OPEN.', preview: '#EC008C' },
+  { id: 'jovem-aprendiz', name: 'Jovem Aprendiz', description: 'Foco em potencial.', preview: '#00AEEF' },
+  { id: 'primeiro-emprego', name: 'Primeiro Emprego', description: 'Valoriza formação.', preview: '#EC008C' },
+  { id: 'corporativo', name: 'Corporativo', description: 'Padrão empresas.', preview: '#111111' },
 ]
 
 export const DEMO_COUPONS: Coupon[] = [
@@ -24,20 +24,20 @@ export const DEMO_COUPONS: Coupon[] = [
   { code: 'AFILIADO15', discountPercent: 15, active: true, usedCount: 7 },
 ]
 
+export const MARITAL_STATUS = ['Solteiro(a)', 'Casado(a)', 'Divorciado(a)', 'Viúvo(a)', 'União estável']
+
 export const emptyResume = (): ResumeData => ({
   fullName: '',
+  address: '',
   birthDate: '',
+  nationality: 'Brasileira',
+  maritalStatus: 'Solteiro(a)',
   phone: '',
   email: '',
-  city: '',
-  objective: '',
-  professionalSummary: '',
-  experiences: [],
   education: [],
   courses: [],
-  skills: [],
-  languages: [],
-  keywords: [],
+  experiences: [],
+  professionalSummary: '',
   templateId: 'moderno',
   aiEnhanced: false,
 })
@@ -45,14 +45,24 @@ export const emptyResume = (): ResumeData => ({
 export const DEMO_RESUME: ResumeData = {
   id: 'demo-resume-1',
   fullName: 'Ana Clara Mendes',
+  address: 'Rua das Flores, 120 — São Paulo, SP',
   birthDate: '1998-04-12',
+  nationality: 'Brasileira',
+  maritalStatus: 'Solteiro(a)',
   phone: '(11) 98765-4321',
   email: 'ana.mendes@email.com',
-  city: 'São Paulo, SP',
-  objective:
-    'Busco oportunidade como analista de marketing digital para aplicar estratégias de conteúdo e performance.',
-  professionalSummary:
-    'Profissional de marketing digital com experiência em campanhas de performance, SEO e redes sociais. Foco em resultados mensuráveis e comunicação clara com stakeholders.',
+  education: [
+    {
+      id: '1',
+      institution: 'Universidade Paulista',
+      course: 'Graduação em Publicidade e Propaganda',
+      year: '2021',
+    },
+  ],
+  courses: [
+    { id: '1', name: 'Google Ads', institution: 'Google Skillshop', year: '2023' },
+    { id: '2', name: 'Excel Avançado', institution: 'Senac', year: '2022' },
+  ],
   experiences: [
     {
       id: '1',
@@ -61,39 +71,11 @@ export const DEMO_RESUME: ResumeData = {
       startDate: '2022-03',
       endDate: '',
       current: true,
-      description:
-        'Gestão de redes sociais, criação de relatórios mensais e suporte em campanhas Google Ads e Meta Ads.',
-    },
-    {
-      id: '2',
-      company: 'Loja Brilho',
-      role: 'Estagiária de Comunicação',
-      startDate: '2020-08',
-      endDate: '2022-02',
-      current: false,
-      description: 'Produção de conteúdo para blog e e-mail marketing, com aumento de 30% na taxa de abertura.',
+      description: 'Gestão de redes sociais e suporte em campanhas digitais.',
     },
   ],
-  education: [
-    {
-      id: '1',
-      institution: 'Universidade Paulista',
-      course: 'Publicidade e Propaganda',
-      level: 'Graduação',
-      startDate: '2017-02',
-      endDate: '2021-12',
-    },
-  ],
-  courses: [
-    { id: '1', name: 'Google Ads', institution: 'Google Skillshop', year: '2023' },
-    { id: '2', name: 'SEO Avançado', institution: 'Alura', year: '2022' },
-  ],
-  skills: ['Marketing Digital', 'Google Ads', 'Meta Ads', 'SEO', 'Canva', 'Excel', 'Copywriting'],
-  languages: [
-    { id: '1', name: 'Português', level: 'Nativo' },
-    { id: '2', name: 'Inglês', level: 'Intermediário' },
-  ],
-  keywords: ['marketing digital', 'performance', 'SEO', 'campanhas', 'redes sociais'],
+  professionalSummary:
+    'Profissional organizada, comunicativa e com experiência em atendimento e marketing digital.',
   templateId: 'moderno',
   aiEnhanced: true,
 }
@@ -101,22 +83,22 @@ export const DEMO_RESUME: ResumeData = {
 export const BENEFITS = [
   {
     title: 'Currículo profissional',
-    description: 'Layout limpo, hierarquia clara e visual que transmite confiança.',
+    description: 'Formato limpo, pronto para enviar em vagas.',
   },
   {
     title: 'PDF automático',
-    description: 'Após o pagamento, seu arquivo fica pronto para download na hora.',
+    description: 'Após o Pix, baixe na hora.',
   },
   {
-    title: 'Compatível com vagas',
-    description: 'Modelos pensados para ATS e recrutadores brasileiros.',
+    title: 'Rápido e simples',
+    description: 'Preencha poucos campos e finalize em minutos.',
   },
   {
     title: 'Entrega instantânea',
-    description: 'Do formulário ao PDF em poucos minutos — sem espera.',
+    description: 'Sem espera e sem complicação.',
   },
   {
-    title: 'Mais de 10 modelos',
-    description: 'Do primeiro emprego ao executivo: escolha o visual ideal.',
+    title: '10 modelos',
+    description: 'Escolha o visual ideal para sua área.',
   },
 ]

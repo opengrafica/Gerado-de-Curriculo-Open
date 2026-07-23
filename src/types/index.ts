@@ -24,9 +24,7 @@ export interface Education {
   id: string
   institution: string
   course: string
-  level: string
-  startDate: string
-  endDate: string
+  year: string
 }
 
 export interface Course {
@@ -36,27 +34,19 @@ export interface Course {
   year: string
 }
 
-export interface Language {
-  id: string
-  name: string
-  level: string
-}
-
 export interface ResumeData {
   id?: string
   fullName: string
+  address: string
   birthDate: string
+  nationality: string
+  maritalStatus: string
   phone: string
   email: string
-  city: string
-  objective: string
-  professionalSummary: string
-  experiences: Experience[]
   education: Education[]
   courses: Course[]
-  skills: string[]
-  languages: Language[]
-  keywords: string[]
+  experiences: Experience[]
+  professionalSummary: string
   templateId: TemplateId
   aiEnhanced: boolean
 }
@@ -120,3 +110,5 @@ export interface AnalyticsSnapshot {
 }
 
 export const PRICE_RESUME = 4.9
+export const BRAND_NAME = 'Currículo OPEN'
+export const BRAND_COMPANY = 'Open Gráfica'

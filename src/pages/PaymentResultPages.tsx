@@ -29,7 +29,7 @@ export function PaymentSuccessPage() {
 
   const shareWhatsApp = () => {
     const text = encodeURIComponent(
-      `Acabei de criar meu currículo profissional no CurrículoJá!\nhttps://curriculoja.com.br`,
+      `Acabei de criar meu currículo profissional no Currículo OPEN!\nhttps://curriculoopen.com.br`,
     )
     window.open(`https://wa.me/?text=${text}`, '_blank')
   }
@@ -104,7 +104,7 @@ export function FinalSuccessPage() {
 
   const shareWhatsApp = () => {
     const text = encodeURIComponent(
-      `Parabéns! Criei meu currículo no CurrículoJá em minutos. Confira: https://curriculoja.com.br`,
+      `Parabéns! Criei meu currículo no Currículo OPEN em minutos. Confira: https://curriculoopen.com.br`,
     )
     window.open(`https://wa.me/?text=${text}`, '_blank')
   }

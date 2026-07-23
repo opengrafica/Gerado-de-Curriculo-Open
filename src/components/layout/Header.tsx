@@ -1,8 +1,9 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { FileText, Moon, Sun, Menu, X } from 'lucide-react'
+import { Moon, Sun, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 import { useAppStore } from '@/store/appStore'
 import { clsx } from 'clsx'
 
@@ -21,13 +22,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-ink-200/70 bg-white/80 backdrop-blur-md dark:border-ink-800 dark:bg-ink-950/80">
       <Container className="flex h-16 items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-2 font-bold text-ink-900 dark:text-white">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-brand-600 text-white">
-            <FileText className="size-5" />
-          </span>
-          <span className="text-lg tracking-tight">
-            Currículo<span className="text-brand-600">Já</span>
-          </span>
+        <Link to="/" className="min-w-0">
+          <BrandLogo size={40} />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
@@ -81,12 +77,7 @@ export function Header() {
             Criar agora
           </Button>
 
-          <button
-            type="button"
-            className="rounded-lg p-2 md:hidden"
-            onClick={() => setOpen(!open)}
-            aria-label="Menu"
-          >
+          <button type="button" className="rounded-lg p-2 md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
         </div>
@@ -100,7 +91,14 @@ export function Header() {
                 {l.label}
               </Link>
             ))}
-            <Button onClick={() => { setOpen(false); navigate('/criar') }}>Criar meu currículo</Button>
+            <Button
+              onClick={() => {
+                setOpen(false)
+                navigate('/criar')
+              }}
+            >
+              Criar meu currículo
+            </Button>
           </div>
         </div>
       )}
@@ -113,20 +111,23 @@ export function Footer() {
     <footer className="border-t border-ink-200 bg-white/60 py-10 dark:border-ink-800 dark:bg-ink-950/60">
       <Container className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="font-bold text-ink-900 dark:text-white">
-            Currículo<span className="text-brand-600">Já</span>
-          </p>
-          <p className="mt-1 text-sm text-ink-500">Currículo profissional com IA em 2 minutos.</p>
+          <BrandLogo size={34} />
+          <p className="mt-2 text-sm text-ink-500">Currículo profissional em minutos — Open Gráfica.</p>
         </div>
         <div className="flex flex-wrap gap-4 text-sm text-ink-500">
-          <Link to="/criar" className="hover:text-brand-600">Criar</Link>
-          <Link to="/afiliados" className="hover:text-brand-600">Afiliados</Link>
-          <Link to="/login" className="hover:text-brand-600">Entrar</Link>
-          <Link to="/recuperar-senha" className="hover:text-brand-600">Recuperar senha</Link>
+          <Link to="/criar" className="hover:text-brand-600">
+            Criar
+          </Link>
+          <Link to="/afiliados" className="hover:text-brand-600">
+            Afiliados
+          </Link>
+          <Link to="/login" className="hover:text-brand-600">
+            Entrar
+          </Link>
         </div>
       </Container>
       <Container className="mt-6 text-xs text-ink-400">
-        © {new Date().getFullYear()} CurrículoJá. Todos os direitos reservados.
+        © {new Date().getFullYear()} Currículo OPEN • Open Gráfica. Todos os direitos reservados.
       </Container>
     </footer>
   )

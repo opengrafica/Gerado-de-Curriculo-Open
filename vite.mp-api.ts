@@ -42,9 +42,9 @@ async function createPixPayment(body: Record<string, unknown>) {
   }
 
   const amount = Number(Number(body.amount ?? 4.9).toFixed(2))
-  const email = String(body.email || 'cliente@curriculoja.com.br')
+  const email = String(body.email || 'cliente@curriculoopen.com.br')
   const paymentId = String(body.paymentId || crypto.randomUUID())
-  const description = String(body.title || 'CurrículoJá — Currículo PDF profissional').slice(0, 200)
+  const description = String(body.title || 'Currículo OPEN — Currículo PDF profissional').slice(0, 200)
 
   const payload = {
     transaction_amount: amount,

@@ -49,7 +49,7 @@ export function PaymentPage() {
     setStatusMsg('')
     try {
       const result = await createPixPayment({
-        title: 'CurrículoJá — Currículo PDF profissional',
+        title: 'Currículo OPEN — Currículo PDF profissional',
         amount: pricing.amount,
         email: resume.email,
         firstName: resume.fullName.split(' ')[0],

@@ -18,9 +18,9 @@ export default async function handler(req, res) {
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {}
     const amount = Number(Number(body.amount ?? 4.9).toFixed(2))
-    const email = body.email || 'cliente@curriculoja.com.br'
+    const email = body.email || 'cliente@curriculoopen.com.br'
     const paymentId = body.paymentId || crypto.randomUUID()
-    const title = String(body.title || 'CurrículoJá — Currículo PDF profissional').slice(0, 200)
+    const title = String(body.title || 'Currículo OPEN — Currículo PDF profissional').slice(0, 200)
 
     const mpRes = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',

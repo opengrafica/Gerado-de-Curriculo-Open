@@ -84,7 +84,7 @@ export function AffiliatesPage() {
 
   const shareWhatsApp = () => {
     const text = encodeURIComponent(
-      `Crie seu currículo profissional em 2 minutos no CurrículoJá por só R$4,90!\n${link}`,
+      `Crie seu currículo profissional em 2 minutos no Currículo OPEN por só R$4,90!\n${link}`,
     )
     window.open(`https://wa.me/?text=${text}`, '_blank')
   }
