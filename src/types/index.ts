@@ -33,6 +33,8 @@ export interface ResumeData {
   maritalStatus: string
   phone: string
   email: string
+  photoDataUrl?: string
+  includePhoto?: boolean
   education: Education[]
   courses: Course[]
   experiences: Experience[]

@@ -8,15 +8,15 @@ export const TEMPLATES: {
 }[] = [
   {
     id: 'moderno',
-    name: 'Moderno',
-    description: 'Layout com barra lateral e visual atual.',
-    preview: 'linear-gradient(135deg,#00AEEF,#0085CC)',
+    name: 'Moderno OPEN',
+    description: 'Barra cyan, destaque magenta e visual chamativo — ideal com foto.',
+    preview: 'linear-gradient(135deg,#00AEEF 0%,#0085CC 55%,#EC008C 120%)',
   },
   {
     id: 'classico',
-    name: 'Clássico',
-    description: 'Tradicional, limpo e elegante para qualquer vaga.',
-    preview: 'linear-gradient(135deg,#222,#555)',
+    name: 'Executivo',
+    description: 'Cabeçalho sofisticado em charcoal e detalhes dourados — elegante e profissional.',
+    preview: 'linear-gradient(135deg,#1c2026 0%,#3a3f48 60%,#b0894a 140%)',
   },
 ]
 
@@ -51,6 +51,8 @@ export const emptyResume = (): ResumeData => ({
   maritalStatus: 'Solteiro',
   phone: '',
   email: '',
+  includePhoto: false,
+  photoDataUrl: undefined,
   education: [],
   courses: [],
   experiences: [],
@@ -68,6 +70,8 @@ export const DEMO_RESUME: ResumeData = {
   maritalStatus: 'Solteira',
   phone: '(11) 98765-4321',
   email: 'ana.mendes@email.com',
+  includePhoto: false,
+  photoDataUrl: undefined,
   education: [
     {
       id: '1',

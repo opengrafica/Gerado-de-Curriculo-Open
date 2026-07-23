@@ -47,7 +47,7 @@ export function LandingPage() {
             </div>
             <p className="mt-4 flex items-center justify-center gap-2 text-sm text-ink-500">
               <Sparkles className="size-4 text-[#EC008C]" />
-              Conta + histórico • PDF e Word • 2 modelos
+              Conta + histórico • PDF e Word • foto opcional
             </p>
           </motion.div>
 
