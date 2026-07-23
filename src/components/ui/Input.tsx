@@ -13,12 +13,12 @@ interface FieldWrapProps {
 
 export function Field({ label, error, children, hint }: FieldWrapProps) {
   return (
-    <label className="block space-y-1.5">
+    <div className="block space-y-1.5">
       <span className="text-sm font-medium text-ink-700 dark:text-ink-200">{label}</span>
       {children}
-      {hint && <span className="text-xs text-ink-400">{hint}</span>}
-      {error && <span className="text-xs text-red-600">{error}</span>}
-    </label>
+      {hint && <span className="block text-xs text-ink-400">{hint}</span>}
+      {error && <span className="block text-xs text-red-600">{error}</span>}
+    </div>
   )
 }
 

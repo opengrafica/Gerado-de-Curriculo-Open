@@ -5,6 +5,7 @@ import { Plus, Trash2, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { Field, Input, Textarea, Select } from '@/components/ui/Input'
+import { BirthDatePicker, MonthYearPicker, YearPicker } from '@/components/ui/DatePickers'
 import { useAppStore } from '@/store/appStore'
 import { TEMPLATES } from '@/data/constants'
 import { enhanceResumeWithAI } from '@/lib/openrouter'
@@ -146,7 +147,10 @@ export function CreateResumePage() {
                 <Input value={resume.fullName} onChange={(e) => setResume({ fullName: e.target.value })} placeholder="Seu nome" />
               </Field>
               <Field label="Data de nascimento">
-                <Input type="date" value={resume.birthDate} onChange={(e) => setResume({ birthDate: e.target.value })} />
+                <BirthDatePicker
+                  value={resume.birthDate}
+                  onChange={(birthDate) => setResume({ birthDate })}
+                />
               </Field>
               <Field label="Telefone">
                 <Input value={resume.phone} onChange={(e) => setResume({ phone: e.target.value })} placeholder="(11) 99999-9999" />
@@ -181,9 +185,18 @@ export function CreateResumePage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Field label="Empresa"><Input value={exp.company} onChange={(e) => updateExp(exp.id, { company: e.target.value })} /></Field>
                     <Field label="Cargo"><Input value={exp.role} onChange={(e) => updateExp(exp.id, { role: e.target.value })} /></Field>
-                    <Field label="Início"><Input type="month" value={exp.startDate} onChange={(e) => updateExp(exp.id, { startDate: e.target.value })} /></Field>
+                    <Field label="Início">
+                      <MonthYearPicker
+                        value={exp.startDate}
+                        onChange={(startDate) => updateExp(exp.id, { startDate })}
+                      />
+                    </Field>
                     <Field label="Fim">
-                      <Input type="month" disabled={exp.current} value={exp.endDate} onChange={(e) => updateExp(exp.id, { endDate: e.target.value })} />
+                      <MonthYearPicker
+                        value={exp.endDate}
+                        disabled={exp.current}
+                        onChange={(endDate) => updateExp(exp.id, { endDate })}
+                      />
                     </Field>
                     <label className="flex items-center gap-2 text-sm sm:col-span-2">
                       <input type="checkbox" checked={exp.current} onChange={(e) => updateExp(exp.id, { current: e.target.checked })} />
@@ -223,8 +236,18 @@ export function CreateResumePage() {
                         <Trash2 className="size-4" /> Remover
                       </Button>
                     </div>
-                    <Field label="Início"><Input type="month" value={ed.startDate} onChange={(e) => updateEdu(ed.id, { startDate: e.target.value })} /></Field>
-                    <Field label="Fim"><Input type="month" value={ed.endDate} onChange={(e) => updateEdu(ed.id, { endDate: e.target.value })} /></Field>
+                    <Field label="Início">
+                      <MonthYearPicker
+                        value={ed.startDate}
+                        onChange={(startDate) => updateEdu(ed.id, { startDate })}
+                      />
+                    </Field>
+                    <Field label="Fim">
+                      <MonthYearPicker
+                        value={ed.endDate}
+                        onChange={(endDate) => updateEdu(ed.id, { endDate })}
+                      />
+                    </Field>
                   </div>
                 ))}
                 <Button type="button" variant="secondary" onClick={addEducation}><Plus className="size-4" /> Escolaridade</Button>
@@ -236,7 +259,9 @@ export function CreateResumePage() {
                   <div key={c.id} className="grid gap-3 sm:grid-cols-3">
                     <Field label="Nome"><Input value={c.name} onChange={(e) => updateCourse(c.id, { name: e.target.value })} /></Field>
                     <Field label="Instituição"><Input value={c.institution} onChange={(e) => updateCourse(c.id, { institution: e.target.value })} /></Field>
-                    <Field label="Ano"><Input value={c.year} onChange={(e) => updateCourse(c.id, { year: e.target.value })} /></Field>
+                    <Field label="Ano">
+                      <YearPicker value={c.year} onChange={(year) => updateCourse(c.id, { year })} />
+                    </Field>
                   </div>
                 ))}
                 <Button type="button" variant="secondary" onClick={addCourse}><Plus className="size-4" /> Curso</Button>
