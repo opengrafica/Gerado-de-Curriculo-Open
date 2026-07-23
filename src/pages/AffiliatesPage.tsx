@@ -120,8 +120,15 @@ export function AffiliatesPage() {
 
         {!user && (
           <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            Faça <Link className="font-semibold underline" to="/login">login</Link> ou{' '}
-            <Link className="font-semibold underline" to="/cadastro">cadastro</Link> para salvar suas comissões e chave Pix.
+            <strong>Afiliado precisa de conta</strong> (para código, histórico e Pix de comissão).{' '}
+            <Link className="font-semibold underline" to="/login">
+              Entrar
+            </Link>{' '}
+            ou{' '}
+            <Link className="font-semibold underline" to="/cadastro">
+              cadastrar
+            </Link>
+            . O cliente que compra o currículo <strong>não precisa de login</strong>.
           </div>
         )}
 
@@ -149,6 +156,19 @@ export function AffiliatesPage() {
             <TrendingUp className="size-4 text-brand-600" />
             Em um currículo de R$ {PRICE_RESUME.toFixed(2).replace('.', ',')} você ganha{' '}
             <strong>R$ {exampleCommission.toFixed(2).replace('.', ',')}</strong>.
+          </div>
+          <div className="rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm text-brand-900 dark:border-brand-800 dark:bg-brand-950/40 dark:text-brand-100">
+            <strong>Como funciona o dinheiro:</strong>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>
+                O cliente paga o Pix e o valor do currículo cai <strong>automaticamente</strong> na
+                conta Mercado Pago da loja (Open Gráfica).
+              </li>
+              <li>
+                A comissão do afiliado é calculada na hora; o admin libera o pagamento da comissão
+                (Pix) no painel.
+              </li>
+            </ul>
           </div>
           <p className="text-sm">
             Seu código: <strong className="font-mono">{code}</strong>

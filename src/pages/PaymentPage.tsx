@@ -178,7 +178,7 @@ export function PaymentPage() {
 
               <div className="flex items-center gap-2 rounded-xl bg-ink-50 p-3 text-sm text-ink-600 dark:bg-ink-800 dark:text-ink-300">
                 <ShieldCheck className="size-5 text-brand-600" />
-                Pix seguro via Mercado Pago. QR Code gerado na hora.
+                Pix seguro via Mercado Pago. O valor cai automático na conta Mercado Pago da Open Gráfica (sem login do cliente).
               </div>
 
               <Button className="w-full" size="lg" loading={loading} onClick={generatePix}>

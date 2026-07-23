@@ -91,6 +91,9 @@ export function CreateResumePage() {
           <h1 className="text-3xl font-bold text-ink-900 dark:text-white">Criar currículo</h1>
           <p className="mt-2 text-ink-600 dark:text-ink-300">
             Simples e rápido — preencha os dados essenciais e gere o PDF.
+            <span className="mt-1 block font-medium text-brand-700 dark:text-brand-300">
+              Não precisa criar conta para comprar.
+            </span>
           </p>
           <div className="mt-6 h-2 overflow-hidden rounded-full bg-ink-200 dark:bg-ink-800">
             <motion.div

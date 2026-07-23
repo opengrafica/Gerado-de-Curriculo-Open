@@ -33,7 +33,7 @@ export function LandingPage() {
               <span className="font-bold text-brand-700 dark:text-brand-300">
                 R${PRICE_RESUME.toFixed(2).replace('.', ',')}
               </span>{' '}
-              no Pix.
+              no Pix. <span className="font-semibold text-ink-800 dark:text-ink-100">Sem criar conta.</span>
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button size="lg" onClick={() => navigate('/criar')}>
