@@ -15,11 +15,13 @@ import {
   type PixPaymentResult,
 } from '@/lib/mercadopago'
 import { TEMPLATES } from '@/data/constants'
+import { getResumePrice } from '@/lib/pricing'
+import { markResumePaid, saveResumeToCloud } from '@/lib/resumes'
 
 export function PaymentPage() {
   const navigate = useNavigate()
-  const { resume, couponCode, setCouponCode, affiliateCode, setAffiliateCode, setPaid, user } =
-    useAppStore()
+  const { resume, couponCode, setCouponCode, setPaid, user, setResume } = useAppStore()
+  const [basePrice, setBasePrice] = useState(PRICE_RESUME)
   const [loading, setLoading] = useState(false)
   const [couponMsg, setCouponMsg] = useState('')
   const [pix, setPix] = useState<PixPaymentResult | null>(null)
@@ -27,16 +29,39 @@ export function PaymentPage() {
   const [polling, setPolling] = useState(false)
   const [statusMsg, setStatusMsg] = useState('')
 
-  const pricing = useMemo(() => applyCoupon(PRICE_RESUME, couponCode), [couponCode])
+  useEffect(() => {
+    let cancelled = false
+    getResumePrice().then((price) => {
+      if (!cancelled) setBasePrice(price)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const pricing = useMemo(() => applyCoupon(basePrice, couponCode), [basePrice, couponCode])
   const template = TEMPLATES.find((t) => t.id === resume.templateId)
 
   const apply = () => {
-    const result = applyCoupon(PRICE_RESUME, couponCode)
+    const result = applyCoupon(basePrice, couponCode)
     setCouponMsg(
       result.valid
         ? `Cupom aplicado: ${result.percent}% de desconto`
         : 'Cupom inválido ou expirado',
     )
+  }
+
+  const unlockAfterPayment = async () => {
+    if (!user?.id) return
+    const id = resume.id || crypto.randomUUID()
+    if (!resume.id) setResume({ id })
+    await saveResumeToCloud({
+      userId: user.id,
+      resume: { ...resume, id },
+      status: 'paid',
+    })
+    await markResumePaid(id)
+    setPaid(true)
   }
 
   const generatePix = async () => {
@@ -45,22 +70,32 @@ export function PaymentPage() {
       navigate('/criar')
       return
     }
+    if (!user?.id) {
+      navigate('/login?next=/pagamento')
+      return
+    }
     setLoading(true)
     setStatusMsg('')
     try {
+      const resumeId = await saveResumeToCloud({
+        userId: user.id,
+        resume,
+        status: 'draft',
+      })
+      if (resumeId !== resume.id) setResume({ id: resumeId })
+
       const result = await createPixPayment({
-        title: 'Currículo OPEN — Currículo PDF profissional',
+        title: 'Currículo OPEN — PDF + Word profissional',
         amount: pricing.amount,
         email: resume.email,
         firstName: resume.fullName.split(' ')[0],
         couponCode: pricing.valid ? couponCode : undefined,
-        affiliateCode: affiliateCode || undefined,
-        resumeId: resume.id,
-        userId: user?.id,
+        resumeId,
+        userId: user.id,
       })
       setPix(result)
       if (result.demo) {
-        setStatusMsg('Modo demonstração: use “Já paguei” para liberar o PDF.')
+        setStatusMsg('Modo demonstração: use “Já paguei” para liberar PDF e Word.')
       } else {
         setStatusMsg('Escaneie o QR Code ou copie o código Pix. Aguardando pagamento…')
       }
@@ -82,6 +117,15 @@ export function PaymentPage() {
         if (stopped) return
         if (result.status === 'approved') {
           await markPaymentApproved(pix.paymentId)
+          if (user?.id) {
+            const id = resume.id || crypto.randomUUID()
+            await saveResumeToCloud({
+              userId: user.id,
+              resume: { ...resume, id },
+              status: 'paid',
+            })
+            await markResumePaid(id)
+          }
           setPaid(true)
           navigate(`/pagamento/sucesso?payment_id=${pix.paymentId}&status=approved`)
           return
@@ -102,7 +146,7 @@ export function PaymentPage() {
       stopped = true
       window.clearInterval(id)
     }
-  }, [pix, navigate, setPaid])
+  }, [pix, navigate, setPaid, user, resume])
 
   const copyPix = async () => {
     if (!pix?.qrCode) return
@@ -116,7 +160,7 @@ export function PaymentPage() {
     setLoading(true)
     try {
       await approveDemoPix(pix.paymentId, pix.mpPaymentId)
-      setPaid(true)
+      await unlockAfterPayment()
       navigate(`/pagamento/sucesso?payment_id=${pix.paymentId}&status=approved&demo=1`)
     } finally {
       setLoading(false)
@@ -128,13 +172,13 @@ export function PaymentPage() {
       <Container className="max-w-xl">
         <h1 className="text-3xl font-bold text-ink-900 dark:text-white">Pagar com Pix</h1>
         <p className="mt-2 text-ink-600 dark:text-ink-300">
-          Só currículo PDF — pagamento instantâneo via Pix.
+          Após o pagamento, libere o PDF e o arquivo Word para editar depois.
         </p>
 
         <div className="mt-8 space-y-4 rounded-2xl border border-ink-200 bg-white p-6 dark:border-ink-700 dark:bg-ink-900">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="font-semibold text-ink-900 dark:text-white">Currículo profissional (PDF)</p>
+              <p className="font-semibold text-ink-900 dark:text-white">Currículo profissional (PDF + Word)</p>
               <p className="text-sm text-ink-500">
                 {resume.fullName || 'Seu currículo'} • Modelo {template?.name}
               </p>
@@ -168,17 +212,9 @@ export function PaymentPage() {
               </div>
               {couponMsg && <p className="text-sm text-ink-500">{couponMsg}</p>}
 
-              <Field label="Código de afiliado (opcional)">
-                <Input
-                  value={affiliateCode}
-                  onChange={(e) => setAffiliateCode(e.target.value.toUpperCase())}
-                  placeholder="OPENGRAFICA"
-                />
-              </Field>
-
               <div className="flex items-center gap-2 rounded-xl bg-ink-50 p-3 text-sm text-ink-600 dark:bg-ink-800 dark:text-ink-300">
                 <ShieldCheck className="size-5 text-brand-600" />
-                Pix seguro via Mercado Pago. O valor cai automático na conta Mercado Pago da Open Gráfica (sem login do cliente).
+                Pix seguro via Mercado Pago. O valor é o configurado no painel admin.
               </div>
 
               <Button className="w-full" size="lg" loading={loading} onClick={generatePix}>
@@ -229,7 +265,7 @@ export function PaymentPage() {
 
               {pix.demo && (
                 <Button className="w-full" size="lg" loading={loading} onClick={confirmDemo}>
-                  Já paguei (liberar PDF)
+                  Já paguei (liberar PDF + Word)
                 </Button>
               )}
 
@@ -245,7 +281,7 @@ export function PaymentPage() {
         </div>
 
         <p className="mt-4 text-center text-xs text-ink-400">
-          Cupons: BEMVINDO10, CURRICULO20, AFILIADO15
+          Cupons: BEMVINDO10, CURRICULO20
         </p>
       </Container>
     </div>

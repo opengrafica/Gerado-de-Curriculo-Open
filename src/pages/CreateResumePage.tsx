@@ -9,6 +9,7 @@ import { BirthDatePicker, MonthYearPicker, YearPicker } from '@/components/ui/Da
 import { useAppStore } from '@/store/appStore'
 import { MARITAL_STATUS, TEMPLATES } from '@/data/constants'
 import { enhanceResumeWithAI } from '@/lib/openrouter'
+import { saveResumeToCloud } from '@/lib/resumes'
 import type { Course, Education, Experience, TemplateId } from '@/types'
 
 const steps = ['Dados', 'Formação', 'Experiência', 'Modelo']
@@ -20,9 +21,10 @@ function newId() {
 export function CreateResumePage() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
-  const { resume, setResume, replaceResume, loadDemo, saveCurrentResume } = useAppStore()
+  const { resume, setResume, replaceResume, loadDemo, saveCurrentResume, user } = useAppStore()
   const [step, setStep] = useState(0)
   const [enhancing, setEnhancing] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (params.get('demo') === '1') loadDemo()
@@ -79,9 +81,26 @@ export function CreateResumePage() {
     }
   }
 
-  const goCheckout = () => {
-    saveCurrentResume()
-    navigate('/pagamento')
+  const goCheckout = async () => {
+    if (!user?.id) {
+      navigate('/login?next=/criar')
+      return
+    }
+    setSaving(true)
+    try {
+      saveCurrentResume()
+      const id = await saveResumeToCloud({
+        userId: user.id,
+        resume: { ...resume, id: resume.id || crypto.randomUUID() },
+        status: 'draft',
+      })
+      setResume({ id })
+      navigate('/pagamento')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Não foi possível salvar o currículo')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -90,9 +109,9 @@ export function CreateResumePage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-ink-900 dark:text-white">Criar currículo</h1>
           <p className="mt-2 text-ink-600 dark:text-ink-300">
-            Simples e rápido — preencha os dados essenciais e gere o PDF.
+            Simples e rápido — preencha os dados essenciais e gere PDF + Word após o Pix.
             <span className="mt-1 block font-medium text-brand-700 dark:text-brand-300">
-              Não precisa criar conta para comprar.
+              Seu currículo fica salvo no histórico da conta.
             </span>
           </p>
           <div className="mt-6 h-2 overflow-hidden rounded-full bg-ink-200 dark:bg-ink-800">
@@ -358,7 +377,7 @@ export function CreateResumePage() {
                 Continuar <ArrowRight className="size-4" />
               </Button>
             ) : (
-              <Button onClick={goCheckout}>
+              <Button loading={saving} onClick={goCheckout}>
                 Ir para pagamento Pix <ArrowRight className="size-4" />
               </Button>
             )}

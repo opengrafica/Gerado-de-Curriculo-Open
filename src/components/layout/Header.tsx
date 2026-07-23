@@ -11,7 +11,6 @@ const links = [
   { to: '/#beneficios', label: 'Benefícios' },
   { to: '/criar', label: 'Criar currículo' },
   { to: '/meus-curriculos', label: 'Meus currículos' },
-  { to: '/afiliados', label: 'Afiliados' },
 ]
 
 export function Header() {
@@ -91,6 +90,40 @@ export function Header() {
                 {l.label}
               </Link>
             ))}
+            {user ? (
+              <>
+                {user.isAdmin && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setOpen(false)
+                      navigate('/admin')
+                    }}
+                  >
+                    Admin
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setOpen(false)
+                    logout()
+                  }}
+                >
+                  Sair
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setOpen(false)
+                  navigate('/login')
+                }}
+              >
+                Entrar
+              </Button>
+            )}
             <Button
               onClick={() => {
                 setOpen(false)
@@ -118,8 +151,8 @@ export function Footer() {
           <Link to="/criar" className="hover:text-brand-600">
             Criar
           </Link>
-          <Link to="/afiliados" className="hover:text-brand-600">
-            Afiliados
+          <Link to="/meus-curriculos" className="hover:text-brand-600">
+            Meus currículos
           </Link>
           <Link to="/login" className="hover:text-brand-600">
             Entrar

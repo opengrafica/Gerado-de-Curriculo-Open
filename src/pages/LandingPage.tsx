@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Sparkles, FileDown, Briefcase, Zap, LayoutTemplate, ArrowRight, CheckCircle2 } from 'lucide-react'
@@ -6,11 +7,17 @@ import { Container, Section, Badge } from '@/components/ui/Container'
 import { BrandLogo } from '@/components/ui/BrandLogo'
 import { BENEFITS, TEMPLATES } from '@/data/constants'
 import { PRICE_RESUME } from '@/types'
+import { getResumePrice } from '@/lib/pricing'
 
 const icons = [Briefcase, FileDown, CheckCircle2, Zap, LayoutTemplate]
 
 export function LandingPage() {
   const navigate = useNavigate()
+  const [price, setPrice] = useState(PRICE_RESUME)
+
+  useEffect(() => {
+    void getResumePrice().then(setPrice)
+  }, [])
 
   return (
     <div className="mesh-bg">
@@ -29,24 +36,24 @@ export function LandingPage() {
               Faça seu currículo profissional em 2 minutos.
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-lg text-ink-600 dark:text-ink-300">
-              Simples, rápido e direto — por apenas{' '}
+              Entre na conta, monte o currículo e pague{' '}
               <span className="font-bold text-brand-700 dark:text-brand-300">
-                R${PRICE_RESUME.toFixed(2).replace('.', ',')}
+                R${price.toFixed(2).replace('.', ',')}
               </span>{' '}
-              no Pix. <span className="font-semibold text-ink-800 dark:text-ink-100">Sem criar conta.</span>
+              no Pix. Liberamos PDF e Word no seu histórico.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button size="lg" onClick={() => navigate('/criar')}>
                 Criar meu currículo agora
                 <ArrowRight className="size-5" />
               </Button>
-              <Button size="lg" variant="secondary" onClick={() => navigate('/criar?demo=1')}>
-                Ver demonstração
+              <Button size="lg" variant="secondary" onClick={() => navigate('/login')}>
+                Entrar na conta
               </Button>
             </div>
             <p className="mt-4 flex items-center justify-center gap-2 text-sm text-ink-500">
               <Sparkles className="size-4 text-[#EC008C]" />
-              Dados essenciais • PDF na hora • 10 modelos
+              Conta + histórico • PDF e Word • 10 modelos
             </p>
           </motion.div>
 

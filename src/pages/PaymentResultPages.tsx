@@ -1,31 +1,48 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { CheckCircle2, Download, Share2, Plus } from 'lucide-react'
+import { CheckCircle2, Download, FileType2, Share2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { useAppStore } from '@/store/appStore'
 import { markPaymentApproved } from '@/lib/mercadopago'
 import { downloadResumePdf, getResumePdfDataUrl } from '@/lib/pdf/generator'
+import { downloadResumeDocx } from '@/lib/word'
+import { markResumePaid, saveResumeToCloud } from '@/lib/resumes'
 
 export function PaymentSuccessPage() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
-  const { resume, setPaid } = useAppStore()
+  const { resume, setPaid, user, setResume } = useAppStore()
   const [preview, setPreview] = useState('')
 
   useEffect(() => {
     const paymentId = params.get('payment_id') || params.get('collection_id')
     const status = params.get('status') || params.get('collection_status')
-    if (status === 'approved' || params.get('demo') === '1') {
+    const approved = status === 'approved' || params.get('demo') === '1'
+
+    async function unlock() {
+      if (!approved) return
       if (paymentId) void markPaymentApproved(paymentId)
       setPaid(true)
+      if (user?.id) {
+        const id = resume.id || crypto.randomUUID()
+        if (!resume.id) setResume({ id })
+        await saveResumeToCloud({
+          userId: user.id,
+          resume: { ...resume, id },
+          status: 'paid',
+        })
+        await markResumePaid(id)
+      }
     }
+
+    void unlock()
     try {
       setPreview(getResumePdfDataUrl(resume))
     } catch {
       setPreview('')
     }
-  }, [params, resume, setPaid])
+  }, [params, resume, setPaid, user, setResume])
 
   const shareWhatsApp = () => {
     const text = encodeURIComponent(
@@ -42,7 +59,7 @@ export function PaymentSuccessPage() {
           Pagamento Pix aprovado!
         </h1>
         <p className="mt-2 text-ink-600 dark:text-ink-300">
-          Seu currículo está pronto para visualizar e baixar.
+          PDF e Word liberados. Você pode baixar agora ou depois em Meus Currículos.
         </p>
 
         <div className="mt-8 overflow-hidden rounded-2xl border border-ink-200 bg-white dark:border-ink-700 dark:bg-ink-900">
@@ -57,11 +74,11 @@ export function PaymentSuccessPage() {
           <Button size="lg" onClick={() => downloadResumePdf(resume)}>
             <Download className="size-5" /> Baixar PDF
           </Button>
-          <Button size="lg" variant="secondary" onClick={shareWhatsApp}>
-            <Share2 className="size-5" /> Compartilhar
+          <Button size="lg" variant="secondary" onClick={() => downloadResumeDocx(resume)}>
+            <FileType2 className="size-5" /> Baixar Word
           </Button>
-          <Button size="lg" variant="ghost" onClick={() => navigate('/sucesso')}>
-            Ir para página final
+          <Button size="lg" variant="ghost" onClick={shareWhatsApp}>
+            <Share2 className="size-5" /> Compartilhar
           </Button>
         </div>
 
@@ -117,13 +134,16 @@ export function FinalSuccessPage() {
           Parabéns! Seu currículo foi criado com sucesso.
         </h1>
         <p className="mt-3 text-ink-600 dark:text-ink-300">
-          {resume.fullName ? `${resume.fullName}, seu` : 'Seu'} PDF profissional está pronto.
+          {resume.fullName ? `${resume.fullName}, seu` : 'Seu'} PDF e Word estão liberados.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button size="lg" onClick={() => downloadResumePdf(resume)}>
             <Download className="size-5" /> Baixar PDF
           </Button>
-          <Button size="lg" variant="secondary" onClick={shareWhatsApp}>
+          <Button size="lg" variant="secondary" onClick={() => downloadResumeDocx(resume)}>
+            <FileType2 className="size-5" /> Baixar Word
+          </Button>
+          <Button size="lg" variant="ghost" onClick={shareWhatsApp}>
             <Share2 className="size-5" /> Compartilhar
           </Button>
           <Button

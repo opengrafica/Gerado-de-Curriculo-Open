@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import { BrowserRouter, Navigate, Route, Routes, useSearchParams } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LandingPage } from '@/pages/LandingPage'
 import { CreateResumePage } from '@/pages/CreateResumePage'
@@ -11,35 +10,65 @@ import {
 } from '@/pages/PaymentResultPages'
 import { MyResumesPage } from '@/pages/MyResumesPage'
 import { AdminPage } from '@/pages/AdminPage'
-import { AffiliatesPage } from '@/pages/AffiliatesPage'
 import { ForgotPasswordPage, LoginPage, RegisterPage } from '@/pages/AuthPages'
-import { useAppStore } from '@/store/appStore'
-
-function AffiliateCapture() {
-  const [params] = useSearchParams()
-  const setAffiliateCode = useAppStore((s) => s.setAffiliateCode)
-  useEffect(() => {
-    const ref = params.get('ref')
-    if (ref) setAffiliateCode(ref.toUpperCase())
-  }, [params, setAffiliateCode])
-  return null
-}
+import { RequireAdmin, RequireAuth } from '@/components/auth/RequireAuth'
 
 export default function App() {
   return (
     <BrowserRouter>
-      <AffiliateCapture />
       <Routes>
         <Route element={<AppLayout />}>
           <Route index element={<LandingPage />} />
-          <Route path="criar" element={<CreateResumePage />} />
-          <Route path="pagamento" element={<PaymentPage />} />
-          <Route path="pagamento/sucesso" element={<PaymentSuccessPage />} />
+          <Route
+            path="criar"
+            element={
+              <RequireAuth>
+                <CreateResumePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="pagamento"
+            element={
+              <RequireAuth>
+                <PaymentPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="pagamento/sucesso"
+            element={
+              <RequireAuth>
+                <PaymentSuccessPage />
+              </RequireAuth>
+            }
+          />
           <Route path="pagamento/erro" element={<PaymentErrorPage />} />
-          <Route path="sucesso" element={<FinalSuccessPage />} />
-          <Route path="meus-curriculos" element={<MyResumesPage />} />
-          <Route path="admin" element={<AdminPage />} />
-          <Route path="afiliados" element={<AffiliatesPage />} />
+          <Route
+            path="sucesso"
+            element={
+              <RequireAuth>
+                <FinalSuccessPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="meus-curriculos"
+            element={
+              <RequireAuth>
+                <MyResumesPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="admin"
+            element={
+              <RequireAdmin>
+                <AdminPage />
+              </RequireAdmin>
+            }
+          />
+          <Route path="afiliados" element={<Navigate to="/" replace />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="cadastro" element={<RegisterPage />} />
           <Route path="recuperar-senha" element={<ForgotPasswordPage />} />

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { Field, Input } from '@/components/ui/Input'
@@ -7,10 +7,16 @@ import { useAppStore } from '@/store/appStore'
 import { getSupabase } from '@/lib/supabase'
 import { ensureProfile, fetchUserProfile, isSuperAdminEmail } from '@/lib/auth'
 
+function safeNext(raw: string | null, isAdmin: boolean) {
+  if (raw && raw.startsWith('/') && !raw.startsWith('//')) return raw
+  return isAdmin ? '/admin' : '/meus-curriculos'
+}
+
 export function LoginPage() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const setUser = useAppStore((s) => s.setUser)
-  const [email, setEmail] = useState('opengraficaoficial@gmail.com')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -45,7 +51,7 @@ export function LoginPage() {
           totalPaid: profile.totalPaid,
           createdAt: user.created_at,
         })
-        navigate(isAdmin ? '/admin' : '/meus-curriculos')
+        navigate(safeNext(params.get('next'), isAdmin))
         return
       }
 
@@ -63,7 +69,7 @@ export function LoginPage() {
         totalPaid: 0,
         createdAt: new Date().toISOString(),
       })
-      navigate(isAdmin ? '/admin' : '/meus-curriculos')
+      navigate(safeNext(params.get('next'), isAdmin))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha no login')
     } finally {
@@ -75,7 +81,9 @@ export function LoginPage() {
     <div className="py-16">
       <Container className="max-w-md">
         <h1 className="text-3xl font-bold text-ink-900 dark:text-white">Entrar</h1>
-        <p className="mt-2 text-ink-600 dark:text-ink-300">Acesse sua conta Currículo OPEN.</p>
+        <p className="mt-2 text-ink-600 dark:text-ink-300">
+          Acesse sua conta para criar currículos e ver o histórico.
+        </p>
         <form onSubmit={submit} className="mt-8 space-y-4 rounded-2xl border border-ink-200 bg-white p-6 dark:border-ink-700 dark:bg-ink-900">
           <Field label="E-mail">
             <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -88,7 +96,12 @@ export function LoginPage() {
           <p className="text-center text-sm text-ink-500">
             <Link to="/recuperar-senha" className="text-brand-700 hover:underline">Esqueci minha senha</Link>
             {' · '}
-            <Link to="/cadastro" className="text-brand-700 hover:underline">Criar conta</Link>
+            <Link
+              to={`/cadastro${params.get('next') ? `?next=${encodeURIComponent(params.get('next')!)}` : ''}`}
+              className="text-brand-700 hover:underline"
+            >
+              Criar conta
+            </Link>
           </p>
         </form>
       </Container>
@@ -98,8 +111,8 @@ export function LoginPage() {
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const setUser = useAppStore((s) => s.setUser)
-  const affiliateCode = useAppStore((s) => s.affiliateCode)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -117,7 +130,6 @@ export function RegisterPage() {
           options: {
             data: {
               full_name: fullName,
-              referred_by: affiliateCode || null,
             },
           },
         })
@@ -125,17 +137,21 @@ export function RegisterPage() {
         if (data.user) {
           await ensureProfile({ id: data.user.id, email, fullName })
           const profile = await fetchUserProfile(data.user.id, email)
+          const isAdmin = Boolean(profile.isAdmin) || isSuperAdminEmail(email)
           setUser({
             id: data.user.id,
             email,
             fullName,
-            isAdmin: Boolean(profile.isAdmin),
+            isAdmin,
             affiliateCode: profile.affiliateCode,
             commissionPercent: profile.commissionPercent ?? 30,
             totalEarned: 0,
             totalPaid: 0,
             createdAt: data.user.created_at,
           })
+          const next = params.get('next')
+          navigate(next && next.startsWith('/') && !next.startsWith('//') ? next : '/criar')
+          return
         }
       } else {
         setUser({
@@ -149,7 +165,8 @@ export function RegisterPage() {
           totalPaid: 0,
         })
       }
-      navigate('/criar')
+      const next = params.get('next')
+      navigate(next && next.startsWith('/') && !next.startsWith('//') ? next : '/criar')
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erro no cadastro')
     } finally {
@@ -161,15 +178,22 @@ export function RegisterPage() {
     <div className="py-16">
       <Container className="max-w-md">
         <h1 className="text-3xl font-bold">Criar conta</h1>
+        <p className="mt-2 text-ink-600 dark:text-ink-300">
+          Com a conta você salva o histórico e baixa PDF + Word após o Pix.
+        </p>
         <form onSubmit={submit} className="mt-8 space-y-4 rounded-2xl border border-ink-200 bg-white p-6 dark:border-ink-700 dark:bg-ink-900">
           <Field label="Nome completo"><Input required value={fullName} onChange={(e) => setFullName(e.target.value)} /></Field>
           <Field label="E-mail"><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
           <Field label="Senha"><Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
-          {affiliateCode && (
-            <p className="text-xs text-brand-700">Indicação detectada: {affiliateCode}</p>
-          )}
           <Button className="w-full" loading={loading} type="submit">Cadastrar</Button>
-          <p className="text-center text-sm"><Link to="/login" className="text-brand-700">Já tenho conta</Link></p>
+          <p className="text-center text-sm">
+            <Link
+              to={`/login${params.get('next') ? `?next=${encodeURIComponent(params.get('next')!)}` : ''}`}
+              className="text-brand-700"
+            >
+              Já tenho conta
+            </Link>
+          </p>
         </form>
       </Container>
     </div>
