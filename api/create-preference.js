@@ -39,7 +39,9 @@ export default async function handler(req, res) {
       userId,
     } = body || {}
 
-    const origin = req.headers.origin || process.env.APP_URL || 'http://localhost:5173'
+    const headerOrigin = req.headers.origin || ''
+    const appUrl = (process.env.APP_URL || headerOrigin || 'http://localhost:5173').replace(/\/$/, '')
+    const origin = appUrl.startsWith('https://') ? appUrl : (headerOrigin.startsWith('https://') ? headerOrigin : appUrl)
     const unitPrice = Number(Number(amount).toFixed(2))
 
     const preference = {
@@ -62,14 +64,17 @@ export default async function handler(req, res) {
         user_id: userId || null,
         payment_id: paymentId || null,
       },
-      back_urls: {
+      statement_descriptor: 'CURRICULOJA',
+    }
+
+    if (String(origin).startsWith('https://')) {
+      preference.back_urls = {
         success: `${origin}/pagamento/sucesso`,
         failure: `${origin}/pagamento/erro`,
         pending: `${origin}/pagamento/sucesso`,
-      },
-      auto_return: 'approved',
-      notification_url: process.env.MP_WEBHOOK_URL || undefined,
-      statement_descriptor: 'CURRICULOJA',
+      }
+      preference.auto_return = 'approved'
+      if (process.env.MP_WEBHOOK_URL) preference.notification_url = process.env.MP_WEBHOOK_URL
     }
 
     const mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
