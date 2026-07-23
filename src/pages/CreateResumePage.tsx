@@ -7,7 +7,7 @@ import {
   Sparkles,
   ArrowRight,
   ArrowLeft,
-  Camera,
+  ImagePlus,
   Eye,
   EyeOff,
   X,
@@ -282,7 +282,7 @@ export function CreateResumePage() {
                     <div>
                       <p className="font-semibold text-ink-900 dark:text-white">Foto no currículo</p>
                       <p className="mt-1 text-sm text-ink-500">
-                        Opcional. Se quiser, envie uma foto (aparece na prévia e no PDF).
+                        Opcional. Escolha uma foto da galeria do celular ou do computador.
                       </p>
                     </div>
                     <label className="inline-flex items-center gap-2 text-sm">
@@ -310,7 +310,7 @@ export function CreateResumePage() {
                       />
                     ) : (
                       <div className="flex size-20 items-center justify-center rounded-full bg-ink-100 text-ink-400 dark:bg-ink-800">
-                        <Camera className="size-7" />
+                        <ImagePlus className="size-7" />
                       </div>
                     )}
                     <div className="flex flex-wrap gap-2">
@@ -318,7 +318,6 @@ export function CreateResumePage() {
                         ref={fileRef}
                         type="file"
                         accept="image/*"
-                        capture="user"
                         className="hidden"
                         onChange={(e) => void onPhoto(e.target.files?.[0])}
                       />
@@ -329,8 +328,8 @@ export function CreateResumePage() {
                         loading={photoBusy}
                         onClick={() => fileRef.current?.click()}
                       >
-                        <Camera className="size-4" />
-                        {resume.photoDataUrl ? 'Trocar foto' : 'Enviar foto'}
+                        <ImagePlus className="size-4" />
+                        {resume.photoDataUrl ? 'Trocar da galeria' : 'Escolher da galeria'}
                       </Button>
                       {resume.photoDataUrl && (
                         <Button
@@ -399,6 +398,11 @@ export function CreateResumePage() {
 
                 <div className="space-y-4">
                   <p className="font-semibold">Cursos</p>
+                  {resume.courses.length === 0 && (
+                    <p className="text-sm text-ink-500">
+                      Nenhum curso ainda. Toque em “Adicionar curso” quantas vezes quiser — ou pule.
+                    </p>
+                  )}
                   {resume.courses.map((c, idx) => (
                     <div key={c.id} className="grid gap-3 sm:grid-cols-3">
                       <Field label={`Curso ${idx + 1}`}>
@@ -443,11 +447,14 @@ export function CreateResumePage() {
 
             {step === 2 && (
               <div className="space-y-6">
-                {resume.experiences.length === 0 && (
-                  <p className="text-sm text-ink-500">
-                    Sem experiência? Pode pular — ideal para primeiro emprego.
-                  </p>
-                )}
+                <div>
+                  <p className="font-semibold">Experiência profissional</p>
+                  {resume.experiences.length === 0 ? (
+                    <p className="mt-2 text-sm text-ink-500">
+                      Nenhuma experiência ainda. Adicione quantas quiser — ou pule se for o primeiro emprego.
+                    </p>
+                  ) : null}
+                </div>
                 {resume.experiences.map((exp, idx) => (
                   <div
                     key={exp.id}
@@ -628,9 +635,23 @@ export function CreateResumePage() {
           </aside>
         </div>
 
-        <div className="mt-4 flex justify-end">
-          <Button variant="secondary" size="sm" onClick={loadDemo}>
-            Preencher demonstração
+        <div className="mt-4 flex justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              replaceResume({
+                ...resume,
+                education: [],
+                courses: [],
+                experiences: [],
+                professionalSummary: '',
+                aiEnhanced: false,
+              })
+              setStep(0)
+            }}
+          >
+            Limpar formação/experiência
           </Button>
         </div>
       </Container>

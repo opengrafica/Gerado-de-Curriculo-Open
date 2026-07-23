@@ -10,7 +10,7 @@ import { downloadResumeDocx } from '@/lib/word'
 import { deleteUserResume, listUserResumes, type StoredResume } from '@/lib/resumes'
 
 export function MyResumesPage() {
-  const { user, replaceResume, setPaid } = useAppStore()
+  const { user, replaceResume, setPaid, resetResume } = useAppStore()
   const navigate = useNavigate()
   const [items, setItems] = useState<StoredResume[]>([])
   const [loading, setLoading] = useState(true)
@@ -50,7 +50,14 @@ export function MyResumesPage() {
               Histórico da sua conta. Após o Pix, baixe PDF e Word para editar.
             </p>
           </div>
-          <Button onClick={() => navigate('/criar')}>Criar novo</Button>
+          <Button
+            onClick={() => {
+              resetResume()
+              navigate('/criar')
+            }}
+          >
+            Criar novo
+          </Button>
         </div>
 
         {loading ? (

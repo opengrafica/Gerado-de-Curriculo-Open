@@ -24,15 +24,18 @@ import {
   Megaphone,
   Clock3,
   Download,
+  Images,
 } from 'lucide-react'
 import { Container } from '@/components/ui/Container'
 import { Button } from '@/components/ui/Button'
 import { Field, Input } from '@/components/ui/Input'
 import { getDemoAnalytics } from '@/data/analytics'
+import { TEMPLATES } from '@/data/constants'
 import { useAppStore } from '@/store/appStore'
 import { getSupabase } from '@/lib/supabase'
 import { getResumePrice, setResumePrice } from '@/lib/pricing'
-import type { PaymentRecord } from '@/types'
+import { hasResumePhoto } from '@/lib/photo'
+import type { PaymentRecord, ResumeData } from '@/types'
 
 function Stat({
   label,
@@ -73,6 +76,19 @@ type AdminUser = {
 
 type AdminPayment = PaymentRecord & {
   email?: string
+}
+
+type AdminResume = {
+  id: string
+  userId: string
+  email?: string
+  fullName: string
+  phone?: string
+  photoDataUrl?: string
+  includePhoto?: boolean
+  status: string
+  templateId: string
+  updatedAt: string
 }
 
 function daysAgo(n: number) {
@@ -117,9 +133,10 @@ function formatMoney(n: number) {
 export function AdminPage() {
   const user = useAppStore((s) => s.user)
   const demo = useMemo(() => getDemoAnalytics(), [])
-  const [tab, setTab] = useState<'overview' | 'users' | 'payments' | 'pricing'>('overview')
+  const [tab, setTab] = useState<'overview' | 'users' | 'payments' | 'resumes' | 'pricing'>('overview')
   const [users, setUsers] = useState<AdminUser[]>([])
   const [payments, setPayments] = useState<AdminPayment[]>([])
+  const [resumes, setResumes] = useState<AdminResume[]>([])
   const [loading, setLoading] = useState(true)
   const [price, setPrice] = useState(4.9)
   const [priceMsg, setPriceMsg] = useState('')
@@ -136,11 +153,12 @@ export function AdminPage() {
     const supabase = getSupabase()
     if (!supabase || !user?.isAdmin) {
       setPayments(demo.payments)
+      setResumes([])
       setLoading(false)
       return
     }
 
-    const [u, p] = await Promise.all([
+    const [u, p, r] = await Promise.all([
       supabase
         .from('users')
         .select(
@@ -149,12 +167,15 @@ export function AdminPage() {
         .order('created_at', { ascending: false })
         .limit(300),
       supabase.from('payments').select('*').order('created_at', { ascending: false }).limit(200),
+      supabase.from('resumes').select('*').order('updated_at', { ascending: false }).limit(200),
     ])
 
     if (u.data) setUsers(u.data as AdminUser[])
 
+    const emailById = new Map((u.data || []).map((row) => [row.id, row.email as string]))
+    const nameById = new Map((u.data || []).map((row) => [row.id, row.full_name as string]))
+
     if (p.data?.length) {
-      const emailById = new Map((u.data || []).map((row) => [row.id, row.email]))
       setPayments(
         p.data.map((row) => ({
           id: row.id,
@@ -171,6 +192,28 @@ export function AdminPage() {
       )
     } else {
       setPayments([])
+    }
+
+    if (r.data?.length) {
+      setResumes(
+        r.data.map((row) => {
+          const data = (row.data || {}) as ResumeData
+          return {
+            id: row.id,
+            userId: row.user_id || '',
+            email: row.user_id ? emailById.get(row.user_id) : data.email,
+            fullName: data.fullName || nameById.get(row.user_id) || 'Sem nome',
+            phone: data.phone || undefined,
+            photoDataUrl: data.photoDataUrl,
+            includePhoto: data.includePhoto,
+            status: row.status || 'draft',
+            templateId: row.template_id || data.templateId || 'moderno',
+            updatedAt: row.updated_at || row.created_at,
+          }
+        }),
+      )
+    } else {
+      setResumes([])
     }
     setLoading(false)
   }, [user, demo.payments])
@@ -322,6 +365,7 @@ export function AdminPage() {
           {[
             { id: 'overview', label: 'Visão geral' },
             { id: 'users', label: 'Usuários' },
+            { id: 'resumes', label: 'Currículos' },
             { id: 'payments', label: 'Vendas' },
             { id: 'pricing', label: 'Preço / Pix' },
           ].map((t) => (
@@ -373,8 +417,9 @@ export function AdminPage() {
               />
             </div>
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <Stat label="Preço no site" value={formatMoney(price)} icon={Banknote} hint="Sincronizado com Pix" />
+              <Stat label="Currículos" value={String(resumes.length)} icon={Images} hint="Criados pelos clientes" />
               <Stat label="Conversão" value={`${conversion}%`} icon={Percent} hint="Clientes → venda aprovada" />
               <Stat
                 label="Pix pendentes"
@@ -448,6 +493,9 @@ export function AdminPage() {
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="secondary" onClick={() => setTab('users')}>
                     Ver clientes novos
+                  </Button>
+                  <Button size="sm" variant="secondary" onClick={() => setTab('resumes')}>
+                    Ver currículos + fotos
                   </Button>
                   <Button size="sm" variant="secondary" onClick={() => setTab('payments')}>
                     Gerenciar vendas
@@ -558,6 +606,69 @@ export function AdminPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {tab === 'resumes' && (
+          <div className="mt-8 space-y-4">
+            <p className="text-sm text-ink-500">
+              {resumes.length} currículo(s) criado(s). Fotos aparecem quando o cliente incluir no formulário.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {resumes.map((r) => {
+                const withPhoto = hasResumePhoto(r)
+                const tpl = TEMPLATES.find(
+                  (t) => t.id === (r.templateId === 'classico' ? 'classico' : 'moderno'),
+                )
+                return (
+                  <div
+                    key={r.id}
+                    className="rounded-2xl border border-ink-200 bg-white p-4 dark:border-ink-700 dark:bg-ink-900"
+                  >
+                    <div className="flex items-start gap-3">
+                      {withPhoto && r.photoDataUrl ? (
+                        <img
+                          src={r.photoDataUrl}
+                          alt={r.fullName}
+                          className="size-16 shrink-0 rounded-full object-cover ring-2 ring-ink-200 dark:ring-ink-600"
+                        />
+                      ) : (
+                        <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-ink-100 text-xs font-semibold text-ink-400 dark:bg-ink-800">
+                          Sem foto
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold text-ink-900 dark:text-white">{r.fullName}</p>
+                        <p className="truncate text-sm text-ink-500">{r.email || '—'}</p>
+                        {r.phone && <p className="text-sm text-ink-500">{r.phone}</p>}
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                      <span
+                        className={`rounded-md px-2 py-0.5 font-semibold ${
+                          r.status === 'paid' || r.status === 'generated'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}
+                      >
+                        {r.status}
+                      </span>
+                      <span className="rounded-md bg-ink-100 px-2 py-0.5 text-ink-600 dark:bg-ink-800 dark:text-ink-200">
+                        {tpl?.name || r.templateId}
+                      </span>
+                      <span className="text-ink-400">
+                        {new Date(r.updatedAt).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+              {!resumes.length && (
+                <div className="col-span-full rounded-2xl border border-dashed border-ink-300 p-10 text-center text-ink-500 dark:border-ink-700">
+                  Nenhum currículo criado ainda.
+                </div>
+              )}
             </div>
           </div>
         )}
