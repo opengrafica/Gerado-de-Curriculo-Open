@@ -29,6 +29,16 @@ insert into public.app_settings (key, value) values
   ('mercadopago', '{"enabled": true, "currency": "BRL"}'::jsonb)
 on conflict (key) do nothing;
 
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce((select is_admin from public.users where id = auth.uid()), false);
+$$;
+
 alter table public.affiliate_commissions enable row level security;
 alter table public.app_settings enable row level security;
 
@@ -38,42 +48,31 @@ create policy "affiliates_select_own" on public.affiliate_commissions
 
 drop policy if exists "admins_select_commissions" on public.affiliate_commissions;
 create policy "admins_select_commissions" on public.affiliate_commissions
-  for select using (
-    auth.uid() = affiliate_user_id
-    or exists (select 1 from public.users u where u.id = auth.uid() and u.is_admin = true)
-  );
+  for select using (auth.uid() = affiliate_user_id or public.is_admin());
 
 drop policy if exists "admins_update_commissions" on public.affiliate_commissions;
 create policy "admins_update_commissions" on public.affiliate_commissions
-  for update using (
-    exists (select 1 from public.users u where u.id = auth.uid() and u.is_admin = true)
-  );
+  for update using (public.is_admin());
 
 drop policy if exists "settings_public_read" on public.app_settings;
 create policy "settings_public_read" on public.app_settings for select using (true);
 
 drop policy if exists "admins_select_users" on public.users;
 create policy "admins_select_users" on public.users
-  for select using (
-    auth.uid() = id
-    or exists (select 1 from public.users u where u.id = auth.uid() and u.is_admin = true)
-  );
+  for select using (auth.uid() = id or public.is_admin());
+
+drop policy if exists "users_update_own" on public.users;
+create policy "users_update_own" on public.users
+  for update using (auth.uid() = id or public.is_admin());
 
 drop policy if exists "admins_select_payments" on public.payments;
 create policy "admins_select_payments" on public.payments
-  for select using (
-    auth.uid() = user_id
-    or exists (select 1 from public.users u where u.id = auth.uid() and u.is_admin = true)
-  );
+  for select using (auth.uid() = user_id or public.is_admin());
 
 drop policy if exists "admins_select_resumes" on public.resumes;
 create policy "admins_select_resumes" on public.resumes
-  for select using (
-    auth.uid() = user_id
-    or exists (select 1 from public.users u where u.id = auth.uid() and u.is_admin = true)
-  );
+  for select using (auth.uid() = user_id or public.is_admin());
 
--- Function: register commission when payment approved
 create or replace function public.register_affiliate_commission()
 returns trigger
 language plpgsql
