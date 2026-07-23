@@ -22,7 +22,7 @@ export function PaymentSuccessPage() {
     const paymentId = params.get('payment_id') || params.get('collection_id')
     const status = params.get('status') || params.get('collection_status')
     if (status === 'approved' || params.get('demo') === '1') {
-      if (paymentId) markPaymentApproved(paymentId)
+      if (paymentId) void markPaymentApproved(paymentId)
       setPaid(true)
     }
     try {
@@ -60,7 +60,7 @@ export function PaymentSuccessPage() {
       })
       // Demo: stay on page and show generated content
       if (initPoint?.includes('demo=1')) {
-        markPaymentApproved(params.get('payment_id') || `upsell_${id}`)
+        await markPaymentApproved(params.get('payment_id') || `upsell_${id}`)
         navigate('/sucesso')
       } else if (initPoint) {
         window.location.href = initPoint

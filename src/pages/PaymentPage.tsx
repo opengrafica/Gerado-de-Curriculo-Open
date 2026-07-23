@@ -11,7 +11,7 @@ import { TEMPLATES } from '@/data/constants'
 
 export function PaymentPage() {
   const navigate = useNavigate()
-  const { resume, couponCode, setCouponCode, affiliateCode, setAffiliateCode, setPaid } = useAppStore()
+  const { resume, couponCode, setCouponCode, affiliateCode, setAffiliateCode, setPaid, user } = useAppStore()
   const [loading, setLoading] = useState(false)
   const [couponMsg, setCouponMsg] = useState('')
 
@@ -42,9 +42,9 @@ export function PaymentPage() {
         couponCode: pricing.valid ? couponCode : undefined,
         affiliateCode: affiliateCode || undefined,
         resumeId: resume.id,
+        userId: user?.id,
       })
       if (demo) {
-        // short UX delay then go to success
         setPaid(true)
       }
       if (initPoint) window.location.href = initPoint
@@ -108,7 +108,7 @@ export function PaymentPage() {
 
           <div className="flex items-center gap-2 rounded-xl bg-ink-50 p-3 text-sm text-ink-600 dark:bg-ink-800 dark:text-ink-300">
             <ShieldCheck className="size-5 text-brand-600" />
-            Pagamento seguro via Mercado Pago. Em modo demo, a aprovação é simulada.
+            Pagamento seguro via Mercado Pago. Com as chaves configuradas, o checkout abre no Mercado Pago; sem elas, usa modo demonstração.
           </div>
 
           <Button className="w-full" size="lg" loading={loading} onClick={pay}>

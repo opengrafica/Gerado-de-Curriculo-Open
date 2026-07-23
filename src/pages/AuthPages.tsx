@@ -5,12 +5,13 @@ import { Container } from '@/components/ui/Container'
 import { Field, Input } from '@/components/ui/Input'
 import { useAppStore } from '@/store/appStore'
 import { getSupabase } from '@/lib/supabase'
+import { ensureProfile, fetchUserProfile, isSuperAdminEmail } from '@/lib/auth'
 
 export function LoginPage() {
   const navigate = useNavigate()
   const setUser = useAppStore((s) => s.setUser)
-  const [email, setEmail] = useState('admin@curriculoja.com')
-  const [password, setPassword] = useState('demo1234')
+  const [email, setEmail] = useState('opengraficaoficial@gmail.com')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -23,26 +24,46 @@ export function LoginPage() {
       if (supabase) {
         const { data, error: err } = await supabase.auth.signInWithPassword({ email, password })
         if (err) throw err
-        setUser({
-          id: data.user!.id,
-          email: data.user!.email || email,
-          fullName: data.user!.user_metadata?.full_name || email.split('@')[0],
-          isAdmin: data.user!.email === 'admin@curriculoja.com',
-          createdAt: data.user!.created_at,
+        const user = data.user!
+        await ensureProfile({
+          id: user.id,
+          email: user.email || email,
+          fullName: user.user_metadata?.full_name,
         })
-      } else {
-        // Demo auth
-        if (password.length < 4) throw new Error('Senha inválida')
+        const profile = await fetchUserProfile(user.id, user.email || email)
+        const isAdmin = Boolean(profile.isAdmin) || isSuperAdminEmail(user.email || email)
         setUser({
-          id: 'demo-user',
-          email,
-          fullName: email.startsWith('admin') ? 'Admin CurrículoJá' : email.split('@')[0],
-          isAdmin: email.startsWith('admin'),
-          affiliateCode: 'DEMO2024',
-          createdAt: new Date().toISOString(),
+          id: user.id,
+          email: user.email || email,
+          fullName: profile.fullName || user.user_metadata?.full_name || email.split('@')[0],
+          phone: profile.phone,
+          isAdmin,
+          affiliateCode: profile.affiliateCode,
+          commissionPercent: profile.commissionPercent,
+          pixKey: profile.pixKey,
+          totalEarned: profile.totalEarned,
+          totalPaid: profile.totalPaid,
+          createdAt: user.created_at,
         })
+        navigate(isAdmin ? '/admin' : '/meus-curriculos')
+        return
       }
-      navigate(email.startsWith('admin') ? '/admin' : '/meus-curriculos')
+
+      // Fallback local (sem Supabase)
+      if (password.length < 4) throw new Error('Senha inválida')
+      const isAdmin = isSuperAdminEmail(email) || email.startsWith('admin')
+      setUser({
+        id: isAdmin ? 'super-admin' : crypto.randomUUID(),
+        email,
+        fullName: isAdmin ? 'Open Gráfica' : email.split('@')[0],
+        isAdmin,
+        affiliateCode: isAdmin ? 'OPENGRAFICA' : 'LOCAL' + Math.floor(Math.random() * 999),
+        commissionPercent: 30,
+        totalEarned: 0,
+        totalPaid: 0,
+        createdAt: new Date().toISOString(),
+      })
+      navigate(isAdmin ? '/admin' : '/meus-curriculos')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha no login')
     } finally {
@@ -69,7 +90,6 @@ export function LoginPage() {
             {' · '}
             <Link to="/cadastro" className="text-brand-700 hover:underline">Criar conta</Link>
           </p>
-          <p className="text-xs text-ink-400">Demo: admin@curriculoja.com / demo1234</p>
         </form>
       </Container>
     </div>
@@ -79,6 +99,7 @@ export function LoginPage() {
 export function RegisterPage() {
   const navigate = useNavigate()
   const setUser = useAppStore((s) => s.setUser)
+  const affiliateCode = useAppStore((s) => s.affiliateCode)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -93,16 +114,27 @@ export function RegisterPage() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName } },
+          options: {
+            data: {
+              full_name: fullName,
+              referred_by: affiliateCode || null,
+            },
+          },
         })
         if (error) throw error
         if (data.user) {
+          await ensureProfile({ id: data.user.id, email, fullName })
+          const profile = await fetchUserProfile(data.user.id, email)
           setUser({
             id: data.user.id,
             email,
             fullName,
+            isAdmin: Boolean(profile.isAdmin),
+            affiliateCode: profile.affiliateCode,
+            commissionPercent: profile.commissionPercent ?? 30,
+            totalEarned: 0,
+            totalPaid: 0,
             createdAt: data.user.created_at,
-            affiliateCode: fullName.slice(0, 3).toUpperCase() + Math.floor(Math.random() * 999),
           })
         }
       } else {
@@ -112,6 +144,9 @@ export function RegisterPage() {
           fullName,
           createdAt: new Date().toISOString(),
           affiliateCode: fullName.slice(0, 3).toUpperCase() + Math.floor(Math.random() * 999),
+          commissionPercent: 30,
+          totalEarned: 0,
+          totalPaid: 0,
         })
       }
       navigate('/criar')
@@ -130,6 +165,9 @@ export function RegisterPage() {
           <Field label="Nome completo"><Input required value={fullName} onChange={(e) => setFullName(e.target.value)} /></Field>
           <Field label="E-mail"><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
           <Field label="Senha"><Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
+          {affiliateCode && (
+            <p className="text-xs text-brand-700">Indicação detectada: {affiliateCode}</p>
+          )}
           <Button className="w-full" loading={loading} type="submit">Cadastrar</Button>
           <p className="text-center text-sm"><Link to="/login" className="text-brand-700">Já tenho conta</Link></p>
         </form>

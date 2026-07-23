@@ -68,7 +68,24 @@ export interface UserProfile {
   phone?: string
   isAdmin?: boolean
   affiliateCode?: string
+  commissionPercent?: number
+  pixKey?: string
+  totalEarned?: number
+  totalPaid?: number
   createdAt: string
+}
+
+export interface AffiliateCommission {
+  id: string
+  affiliateUserId: string
+  paymentId?: string
+  referredEmail?: string
+  saleAmount: number
+  commissionPercent: number
+  commissionAmount: number
+  status: 'pending' | 'approved' | 'paid' | 'cancelled'
+  createdAt: string
+  paidAt?: string
 }
 
 export interface PaymentRecord {
