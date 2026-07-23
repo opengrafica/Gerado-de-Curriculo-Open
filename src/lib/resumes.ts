@@ -1,9 +1,28 @@
 import { getSupabase } from '@/lib/supabase'
-import type { ResumeData } from '@/types'
+import { TEMPLATES } from '@/data/constants'
+import type { ResumeData, TemplateId } from '@/types'
 
 export type StoredResume = ResumeData & {
   status?: 'draft' | 'paid' | 'generated'
   updatedAt?: string
+}
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function safeResumeId(id?: string) {
+  return id && UUID_RE.test(id) ? id : crypto.randomUUID()
+}
+
+function safeTemplateId(id?: string): TemplateId {
+  return TEMPLATES.some((t) => t.id === id) ? (id as TemplateId) : 'moderno'
+}
+
+function mirrorLocal(resume: ResumeData, status: StoredResume['status'], updatedAt: string) {
+  const local = JSON.parse(localStorage.getItem('cj_cloud_resumes') || '[]') as StoredResume[]
+  const next: StoredResume = { ...resume, status, updatedAt }
+  const others = local.filter((r) => r.id !== resume.id)
+  localStorage.setItem('cj_cloud_resumes', JSON.stringify([next, ...others]))
 }
 
 export async function saveResumeToCloud(params: {
@@ -11,32 +30,48 @@ export async function saveResumeToCloud(params: {
   resume: ResumeData
   status?: 'draft' | 'paid' | 'generated'
 }): Promise<string> {
-  const id = params.resume.id || crypto.randomUUID()
-  const payload = {
-    id,
-    user_id: params.userId,
-    data: { ...params.resume, id },
-    template_id: params.resume.templateId,
-    status: params.status || 'draft',
-    updated_at: new Date().toISOString(),
-  }
+  const id = safeResumeId(params.resume.id)
+  const templateId = safeTemplateId(params.resume.templateId)
+  const resume: ResumeData = { ...params.resume, id, templateId }
+  const status = params.status || 'draft'
+  const updatedAt = new Date().toISOString()
+
+  // Sempre espelha localmente para não travar o fluxo do cliente
+  mirrorLocal(resume, status, updatedAt)
 
   const supabase = getSupabase()
-  if (supabase) {
+  if (!supabase) return id
+
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    const authUserId = session?.user?.id || params.userId
+
+    const payload = {
+      id,
+      user_id: authUserId,
+      data: resume,
+      template_id: templateId,
+      status,
+      updated_at: updatedAt,
+    }
+
     const { error } = await supabase.from('resumes').upsert(payload, { onConflict: 'id' })
-    if (error) throw error
+    if (error) {
+      // Retry sem FK de template (casos de seed incompleto)
+      const { error: retryError } = await supabase.from('resumes').upsert(
+        { ...payload, template_id: null },
+        { onConflict: 'id' },
+      )
+      if (retryError) {
+        console.warn('Falha ao salvar currículo no Supabase; mantido localmente.', retryError.message)
+      }
+    }
+  } catch (err) {
+    console.warn('Falha ao sincronizar currículo; mantido localmente.', err)
   }
 
-  // local mirror
-  const local = JSON.parse(localStorage.getItem('cj_cloud_resumes') || '[]') as StoredResume[]
-  const next: StoredResume = {
-    ...params.resume,
-    id,
-    status: params.status || 'draft',
-    updatedAt: payload.updated_at,
-  }
-  const others = local.filter((r) => r.id !== id)
-  localStorage.setItem('cj_cloud_resumes', JSON.stringify([next, ...others]))
   return id
 }
 
@@ -52,7 +87,7 @@ export async function listUserResumes(userId: string): Promise<StoredResume[]> {
       return data.map((row) => ({
         ...(row.data as ResumeData),
         id: row.id,
-        templateId: row.template_id || (row.data as ResumeData)?.templateId || 'moderno',
+        templateId: safeTemplateId(row.template_id || (row.data as ResumeData)?.templateId),
         status: row.status,
         updatedAt: row.updated_at,
       }))
@@ -60,7 +95,7 @@ export async function listUserResumes(userId: string): Promise<StoredResume[]> {
   }
 
   const local = JSON.parse(localStorage.getItem('cj_cloud_resumes') || '[]') as StoredResume[]
-  return local
+  return local.map((r) => ({ ...r, templateId: safeTemplateId(r.templateId) }))
 }
 
 export async function deleteUserResume(id: string) {

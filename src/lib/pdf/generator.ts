@@ -13,14 +13,6 @@ type Theme = {
 const THEMES: Record<TemplateId, Theme> = {
   moderno: { primary: [0, 174, 239], text: [24, 24, 27], muted: [106, 106, 115], accent: [0, 174, 239], sidebar: true },
   classico: { primary: [17, 17, 17], text: [24, 24, 27], muted: [106, 106, 115], accent: [17, 17, 17] },
-  executivo: { primary: [30, 58, 95], text: [20, 30, 45], muted: [90, 110, 130], accent: [30, 58, 95], sidebar: true },
-  minimalista: { primary: [82, 82, 82], text: [40, 40, 40], muted: [120, 120, 120], accent: [82, 82, 82] },
-  azul: { primary: [0, 174, 239], text: [30, 41, 59], muted: [100, 116, 139], accent: [0, 174, 239], sidebar: true },
-  preto: { primary: [17, 17, 17], text: [17, 17, 17], muted: [82, 82, 82], accent: [17, 17, 17] },
-  criativo: { primary: [236, 0, 140], text: [24, 24, 27], muted: [106, 106, 115], accent: [236, 0, 140], sidebar: true },
-  'jovem-aprendiz': { primary: [0, 174, 239], text: [24, 24, 27], muted: [106, 106, 115], accent: [0, 174, 239] },
-  'primeiro-emprego': { primary: [236, 0, 140], text: [24, 24, 27], muted: [106, 106, 115], accent: [236, 0, 140] },
-  corporativo: { primary: [17, 17, 17], text: [24, 24, 27], muted: [106, 106, 115], accent: [0, 174, 239] },
 }
 
 function formatPeriod(start: string, end: string, current?: boolean) {
@@ -39,7 +31,8 @@ function formatBirth(iso: string) {
 }
 
 export function generateResumePdf(data: ResumeData, templateId?: TemplateId): jsPDF {
-  const id = templateId || data.templateId
+  const raw = templateId || data.templateId
+  const id: TemplateId = raw === 'classico' ? 'classico' : 'moderno'
   const theme = THEMES[id]
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const pageW = 210

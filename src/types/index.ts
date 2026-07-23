@@ -1,14 +1,4 @@
-export type TemplateId =
-  | 'moderno'
-  | 'classico'
-  | 'executivo'
-  | 'minimalista'
-  | 'azul'
-  | 'preto'
-  | 'criativo'
-  | 'jovem-aprendiz'
-  | 'primeiro-emprego'
-  | 'corporativo'
+export type TemplateId = 'moderno' | 'classico'
 
 export interface Experience {
   id: string

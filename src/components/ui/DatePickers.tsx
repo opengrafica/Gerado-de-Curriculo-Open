@@ -115,16 +115,16 @@ export function BirthDatePicker({
   return (
     <div className="space-y-2">
       <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto] gap-2">
-        <select className={selectClass} value={draft.d} aria-label="Dia" onChange={(e) => setPart('d', e.target.value)}>
+        <Select className="px-3 py-2.5 text-sm" value={draft.d} aria-label="Dia" onChange={(e) => setPart('d', e.target.value)}>
           <option value="">Dia</option>
           {Array.from({ length: maxDay }, (_, i) => i + 1).map((d) => (
             <option key={d} value={pad(d)}>
               {d}
             </option>
           ))}
-        </select>
-        <select
-          className={selectClass}
+        </Select>
+        <Select
+          className="px-3 py-2.5 text-sm"
           value={draft.m}
           aria-label="Mês"
           onChange={(e) => {
@@ -138,9 +138,9 @@ export function BirthDatePicker({
               {name}
             </option>
           ))}
-        </select>
-        <select
-          className={selectClass}
+        </Select>
+        <Select
+          className="px-3 py-2.5 text-sm"
           value={draft.y}
           aria-label="Ano"
           onChange={(e) => {
@@ -154,7 +154,7 @@ export function BirthDatePicker({
               {y}
             </option>
           ))}
-        </select>
+        </Select>
         <button
           type="button"
           aria-label="Abrir calendário"
@@ -290,8 +290,8 @@ export function MonthYearPicker({
   return (
     <div className="space-y-2">
       <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] gap-2">
-        <select
-          className={selectClass}
+        <Select
+          className="px-3 py-2.5 text-sm"
           value={parsed.m}
           aria-label="Mês"
           onChange={(e) => {
@@ -306,9 +306,9 @@ export function MonthYearPicker({
               {name}
             </option>
           ))}
-        </select>
-        <select
-          className={selectClass}
+        </Select>
+        <Select
+          className="px-3 py-2.5 text-sm"
           value={parsed.y}
           aria-label="Ano"
           onChange={(e) => {
@@ -323,7 +323,7 @@ export function MonthYearPicker({
               {y}
             </option>
           ))}
-        </select>
+        </Select>
         <button
           type="button"
           aria-label="Atalhos de data"

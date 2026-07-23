@@ -1,4 +1,5 @@
 import { clsx } from 'clsx'
+import { ChevronDown } from 'lucide-react'
 import type { InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes, ReactNode } from 'react'
 
 const fieldClass =
@@ -32,8 +33,17 @@ export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTex
 
 export function Select({ className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <select className={clsx(fieldClass, className)} {...props}>
-      {children}
-    </select>
+    <div className="relative">
+      <select
+        className={clsx(fieldClass, 'appearance-none pr-11', className)}
+        {...props}
+      >
+        {children}
+      </select>
+      <ChevronDown
+        className="pointer-events-none absolute right-3 top-1/2 size-5 -translate-y-1/2 text-ink-400"
+        aria-hidden
+      />
+    </div>
   )
 }

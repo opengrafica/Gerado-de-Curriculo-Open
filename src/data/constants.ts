@@ -6,32 +6,49 @@ export const TEMPLATES: {
   description: string
   preview: string
 }[] = [
-  { id: 'moderno', name: 'Moderno', description: 'Limpo e atual.', preview: '#00AEEF' },
-  { id: 'classico', name: 'Clássico', description: 'Tradicional e elegante.', preview: '#111111' },
-  { id: 'executivo', name: 'Executivo', description: 'Sofisticado para liderança.', preview: '#1e3a5f' },
-  { id: 'minimalista', name: 'Minimalista', description: 'Espaçoso e direto.', preview: '#525252' },
-  { id: 'azul', name: 'Azul', description: 'Tom corporativo cyan.', preview: '#00AEEF' },
-  { id: 'preto', name: 'Preto', description: 'Alto contraste.', preview: '#111111' },
-  { id: 'criativo', name: 'Criativo', description: 'Toque magenta OPEN.', preview: '#EC008C' },
-  { id: 'jovem-aprendiz', name: 'Jovem Aprendiz', description: 'Foco em potencial.', preview: '#00AEEF' },
-  { id: 'primeiro-emprego', name: 'Primeiro Emprego', description: 'Valoriza formação.', preview: '#EC008C' },
-  { id: 'corporativo', name: 'Corporativo', description: 'Padrão empresas.', preview: '#111111' },
+  {
+    id: 'moderno',
+    name: 'Moderno',
+    description: 'Layout com barra lateral e visual atual.',
+    preview: 'linear-gradient(135deg,#00AEEF,#0085CC)',
+  },
+  {
+    id: 'classico',
+    name: 'Clássico',
+    description: 'Tradicional, limpo e elegante para qualquer vaga.',
+    preview: 'linear-gradient(135deg,#222,#555)',
+  },
 ]
 
 export const DEMO_COUPONS: Coupon[] = [
   { code: 'BEMVINDO10', discountPercent: 10, active: true, maxUses: 1000, usedCount: 42 },
   { code: 'CURRICULO20', discountPercent: 20, active: true, maxUses: 100, usedCount: 18 },
-  { code: 'AFILIADO15', discountPercent: 15, active: true, usedCount: 7 },
 ]
 
-export const MARITAL_STATUS = ['Solteiro(a)', 'Casado(a)', 'Divorciado(a)', 'Viúvo(a)', 'União estável']
+export const NATIONALITIES = ['Brasileiro', 'Brasileira'] as const
+
+export const MARITAL_STATUS_BY_NATIONALITY: Record<(typeof NATIONALITIES)[number], string[]> = {
+  Brasileiro: ['Solteiro', 'Casado', 'Divorciado', 'Viúvo', 'União estável'],
+  Brasileira: ['Solteira', 'Casada', 'Divorciada', 'Viúva', 'União estável'],
+}
+
+export const MARITAL_STATUS = [
+  ...MARITAL_STATUS_BY_NATIONALITY.Brasileiro,
+  ...MARITAL_STATUS_BY_NATIONALITY.Brasileira.filter((s) => s !== 'União estável'),
+]
+
+export function maritalOptionsFor(nationality?: string) {
+  if (nationality === 'Brasileiro') return MARITAL_STATUS_BY_NATIONALITY.Brasileiro
+  if (nationality === 'Brasileira') return MARITAL_STATUS_BY_NATIONALITY.Brasileira
+  return MARITAL_STATUS_BY_NATIONALITY.Brasileira
+}
 
 export const emptyResume = (): ResumeData => ({
   fullName: '',
   address: '',
   birthDate: '',
-  nationality: 'Brasileira',
-  maritalStatus: 'Solteiro(a)',
+  nationality: 'Brasileiro',
+  maritalStatus: 'Solteiro',
   phone: '',
   email: '',
   education: [],
@@ -43,12 +60,12 @@ export const emptyResume = (): ResumeData => ({
 })
 
 export const DEMO_RESUME: ResumeData = {
-  id: 'demo-resume-1',
+  id: crypto.randomUUID?.() || undefined,
   fullName: 'Ana Clara Mendes',
   address: 'Rua das Flores, 120 — São Paulo, SP',
   birthDate: '1998-04-12',
   nationality: 'Brasileira',
-  maritalStatus: 'Solteiro(a)',
+  maritalStatus: 'Solteira',
   phone: '(11) 98765-4321',
   email: 'ana.mendes@email.com',
   education: [
@@ -86,8 +103,8 @@ export const BENEFITS = [
     description: 'Formato limpo, pronto para enviar em vagas.',
   },
   {
-    title: 'PDF automático',
-    description: 'Após o Pix, baixe na hora.',
+    title: 'PDF e Word',
+    description: 'Após o Pix, baixe os dois arquivos.',
   },
   {
     title: 'Rápido e simples',
@@ -98,7 +115,7 @@ export const BENEFITS = [
     description: 'Sem espera e sem complicação.',
   },
   {
-    title: '10 modelos',
-    description: 'Escolha o visual ideal para sua área.',
+    title: '2 modelos',
+    description: 'Escolha entre Moderno e Clássico.',
   },
 ]

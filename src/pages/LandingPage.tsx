@@ -47,7 +47,7 @@ export function LandingPage() {
             </div>
             <p className="mt-4 flex items-center justify-center gap-2 text-sm text-ink-500">
               <Sparkles className="size-4 text-[#EC008C]" />
-              Conta + histórico • PDF e Word • 10 modelos
+              Conta + histórico • PDF e Word • 2 modelos
             </p>
           </motion.div>
 
@@ -126,10 +126,10 @@ export function LandingPage() {
       <Section>
         <Container>
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold text-ink-900 dark:text-white">10 modelos profissionais</h2>
-            <p className="mt-3 text-ink-600 dark:text-ink-300">Escolha o visual e baixe o PDF após o Pix.</p>
+            <h2 className="text-3xl font-bold text-ink-900 dark:text-white">2 modelos profissionais</h2>
+            <p className="mt-3 text-ink-600 dark:text-ink-300">Escolha Moderno ou Clássico e baixe após o Pix.</p>
           </div>
-          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:mx-auto sm:max-w-xl sm:grid-cols-2">
             {TEMPLATES.map((t, i) => (
               <motion.button
                 key={t.id}

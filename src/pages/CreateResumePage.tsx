@@ -7,7 +7,11 @@ import { Container } from '@/components/ui/Container'
 import { Field, Input, Textarea, Select } from '@/components/ui/Input'
 import { BirthDatePicker, MonthYearPicker, YearPicker } from '@/components/ui/DatePickers'
 import { useAppStore } from '@/store/appStore'
-import { MARITAL_STATUS, TEMPLATES } from '@/data/constants'
+import {
+  maritalOptionsFor,
+  NATIONALITIES,
+  TEMPLATES,
+} from '@/data/constants'
 import { enhanceResumeWithAI } from '@/lib/openrouter'
 import { saveResumeToCloud } from '@/lib/resumes'
 import type { Course, Education, Experience, TemplateId } from '@/types'
@@ -81,6 +85,19 @@ export function CreateResumePage() {
     }
   }
 
+  const maritalOptions = useMemo(
+    () => maritalOptionsFor(resume.nationality),
+    [resume.nationality],
+  )
+
+  const onNationalityChange = (nationality: string) => {
+    const options = maritalOptionsFor(nationality)
+    const maritalStatus = options.includes(resume.maritalStatus)
+      ? resume.maritalStatus
+      : options[0]
+    setResume({ nationality, maritalStatus })
+  }
+
   const goCheckout = async () => {
     if (!user?.id) {
       navigate('/login?next=/criar')
@@ -97,7 +114,9 @@ export function CreateResumePage() {
       setResume({ id })
       navigate('/pagamento')
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Não foi possível salvar o currículo')
+      console.warn(err)
+      // Não bloqueia o Pix: o currículo já fica no aparelho
+      navigate('/pagamento')
     } finally {
       setSaving(false)
     }
@@ -168,20 +187,27 @@ export function CreateResumePage() {
                   onChange={(birthDate) => setResume({ birthDate })}
                 />
               </Field>
-              <Field label="Nacionalidade">
-                <Input
-                  value={resume.nationality}
-                  onChange={(e) => setResume({ nationality: e.target.value })}
-                  placeholder="Brasileira"
-                />
-              </Field>
-              <Field label="Estado civil">
+              <Field label="Nacionalidade" hint="Toque na seta para escolher">
                 <Select
-                  value={resume.maritalStatus}
+                  value={resume.nationality === 'Brasileiro' ? 'Brasileiro' : 'Brasileira'}
+                  onChange={(e) => onNationalityChange(e.target.value)}
+                >
+                  {NATIONALITIES.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label="Estado civil" hint="Toque na seta para escolher">
+                <Select
+                  value={maritalOptions.includes(resume.maritalStatus) ? resume.maritalStatus : maritalOptions[0]}
                   onChange={(e) => setResume({ maritalStatus: e.target.value })}
                 >
-                  {MARITAL_STATUS.map((s) => (
-                    <option key={s}>{s}</option>
+                  {maritalOptions.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
                   ))}
                 </Select>
               </Field>
@@ -326,23 +352,42 @@ export function CreateResumePage() {
           {step === 3 && (
             <div className="space-y-6">
               <div>
-                <p className="mb-3 font-semibold">Escolha o modelo</p>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {TEMPLATES.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setResume({ templateId: t.id })}
-                      className={`rounded-xl border p-3 text-left transition ${
-                        resume.templateId === t.id
-                          ? 'border-brand-600 ring-2 ring-brand-500/30'
-                          : 'border-ink-200 dark:border-ink-700'
-                      }`}
-                    >
-                      <div className="mb-2 h-10 rounded-lg" style={{ background: t.preview }} />
-                      <p className="text-sm font-semibold">{t.name}</p>
-                    </button>
-                  ))}
+                <p className="mb-1 font-semibold">Escolha o modelo</p>
+                <p className="mb-4 text-sm text-ink-500">Dois modelos profissionais — toque para marcar.</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {TEMPLATES.map((t) => {
+                    const selected = (resume.templateId === 'classico' ? 'classico' : 'moderno') === t.id
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setResume({ templateId: t.id })}
+                        className={`rounded-2xl border p-4 text-left transition ${
+                          selected
+                            ? 'border-brand-600 ring-2 ring-brand-500/30'
+                            : 'border-ink-200 dark:border-ink-700'
+                        }`}
+                      >
+                        <div
+                          className="mb-3 h-24 rounded-xl"
+                          style={{ background: t.preview }}
+                        />
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-base font-semibold">{t.name}</p>
+                          <span
+                            className={`flex size-6 items-center justify-center rounded-full border text-xs ${
+                              selected
+                                ? 'border-brand-600 bg-brand-600 text-white'
+                                : 'border-ink-300 text-transparent'
+                            }`}
+                          >
+                            ✓
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm text-ink-500">{t.description}</p>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
