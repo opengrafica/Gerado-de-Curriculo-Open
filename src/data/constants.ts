@@ -1,4 +1,4 @@
-import type { Coupon, ResumeData, TemplateId, UpsellOffer } from '@/types'
+import type { Coupon, ResumeData, TemplateId } from '@/types'
 
 export const TEMPLATES: {
   id: TemplateId
@@ -16,32 +16,6 @@ export const TEMPLATES: {
   { id: 'jovem-aprendiz', name: 'Jovem Aprendiz', description: 'Foco em potencial e formação.', preview: '#0891b2' },
   { id: 'primeiro-emprego', name: 'Primeiro Emprego', description: 'Valoriza cursos e habilidades.', preview: '#059669' },
   { id: 'corporativo', name: 'Corporativo', description: 'Padrão ATS-friendly para empresas.', preview: '#0f7661' },
-]
-
-export const UPSELLS: UpsellOffer[] = [
-  {
-    id: 'cover',
-    name: 'Carta de apresentação',
-    description: 'Texto persuasivo personalizado para enviar com o currículo.',
-    price: 4.9,
-    product: 'cover_letter',
-    badge: 'Popular',
-  },
-  {
-    id: 'linkedin',
-    name: 'Perfil para LinkedIn',
-    description: 'Headline, resumo e seções otimizadas para recrutadores.',
-    price: 9.9,
-    product: 'linkedin',
-  },
-  {
-    id: 'complete',
-    name: 'Pacote Completo',
-    description: 'Carta + LinkedIn + 2 versões extras do currículo.',
-    price: 19.9,
-    product: 'complete_pack',
-    badge: 'Melhor custo',
-  },
 ]
 
 export const DEMO_COUPONS: Coupon[] = [

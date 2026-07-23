@@ -1,5 +1,5 @@
 /**
- * Vercel Serverless — compat: gera Pix (mesmo fluxo de create-pix) (Mercado Pago Payments API).
+ * Vercel Serverless — cria pagamento Pix direto (Mercado Pago Payments API).
  */
 
 export default async function handler(req, res) {

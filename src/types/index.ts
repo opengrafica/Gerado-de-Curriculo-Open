@@ -94,7 +94,7 @@ export interface PaymentRecord {
   resumeId?: string
   amount: number
   status: 'pending' | 'approved' | 'rejected' | 'cancelled'
-  product: 'resume' | 'cover_letter' | 'linkedin' | 'complete_pack'
+  product: 'resume'
   couponCode?: string
   affiliateCode?: string
   mercadoPagoId?: string
@@ -109,15 +109,6 @@ export interface Coupon {
   usedCount: number
 }
 
-export interface UpsellOffer {
-  id: string
-  name: string
-  description: string
-  price: number
-  product: PaymentRecord['product']
-  badge?: string
-}
-
 export interface AnalyticsSnapshot {
   totalUsers: number
   totalSales: number
@@ -129,6 +120,3 @@ export interface AnalyticsSnapshot {
 }
 
 export const PRICE_RESUME = 4.9
-export const PRICE_COVER = 4.9
-export const PRICE_LINKEDIN = 9.9
-export const PRICE_COMPLETE = 19.9

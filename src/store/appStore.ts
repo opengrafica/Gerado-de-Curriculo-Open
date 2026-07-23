@@ -11,8 +11,6 @@ interface AppState {
   paid: boolean
   couponCode: string
   affiliateCode: string
-  coverLetter: string
-  linkedInText: string
   setUser: (user: UserProfile | null) => void
   setResume: (resume: Partial<ResumeData>) => void
   replaceResume: (resume: ResumeData) => void
@@ -23,8 +21,6 @@ interface AppState {
   setPaid: (paid: boolean) => void
   setCouponCode: (code: string) => void
   setAffiliateCode: (code: string) => void
-  setCoverLetter: (text: string) => void
-  setLinkedInText: (text: string) => void
   logout: () => void
 }
 
@@ -42,8 +38,6 @@ export const useAppStore = create<AppState>()(
       paid: false,
       couponCode: '',
       affiliateCode: '',
-      coverLetter: '',
-      linkedInText: '',
       setUser: (user) => set({ user }),
       setResume: (partial) => set({ resume: { ...get().resume, ...partial } }),
       replaceResume: (resume) => set({ resume }),
@@ -62,8 +56,6 @@ export const useAppStore = create<AppState>()(
       setPaid: (paid) => set({ paid }),
       setCouponCode: (couponCode) => set({ couponCode }),
       setAffiliateCode: (affiliateCode) => set({ affiliateCode }),
-      setCoverLetter: (coverLetter) => set({ coverLetter }),
-      setLinkedInText: (linkedInText) => set({ linkedInText }),
       logout: () => set({ user: null, paid: false }),
     }),
     {
@@ -76,8 +68,6 @@ export const useAppStore = create<AppState>()(
         paid: s.paid,
         couponCode: s.couponCode,
         affiliateCode: s.affiliateCode,
-        coverLetter: s.coverLetter,
-        linkedInText: s.linkedInText,
       }),
       onRehydrateStorage: () => (state) => {
         if (state?.darkMode) {

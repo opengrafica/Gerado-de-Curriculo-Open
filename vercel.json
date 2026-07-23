@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/payment-status/:id", "destination": "/api/payment-status?id=:id" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]

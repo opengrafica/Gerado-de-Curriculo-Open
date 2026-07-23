@@ -20,18 +20,19 @@ export function getDemoAnalytics(): AnalyticsSnapshot {
     {
       id: 'pay_2',
       userId: 'u2',
-      amount: 19.9,
+      amount: 4.41,
       status: 'approved',
-      product: 'complete_pack',
+      product: 'resume',
       couponCode: 'BEMVINDO10',
       createdAt: `${daysAgo(2)}T10:05:00Z`,
     },
     {
       id: 'pay_3',
       userId: 'u3',
-      amount: 9.9,
+      amount: 4.9,
       status: 'approved',
-      product: 'linkedin',
+      product: 'resume',
+      affiliateCode: 'OPENGRAFICA',
       createdAt: `${daysAgo(3)}T18:40:00Z`,
     },
     {
@@ -47,11 +48,11 @@ export function getDemoAnalytics(): AnalyticsSnapshot {
       userId: 'u5',
       amount: 4.9,
       status: 'approved',
-      product: 'cover_letter',
+      product: 'resume',
       affiliateCode: 'ANA2024',
       createdAt: `${daysAgo(5)}T16:33:00Z`,
     },
-    ...stored,
+    ...stored.filter((p) => p.product === 'resume'),
   ]
 
   const approved = demoPayments.filter((p) => p.status === 'approved')
@@ -72,7 +73,7 @@ export function getDemoAnalytics(): AnalyticsSnapshot {
 
   const totalUsers = 128 + stored.length
   const totalSales = approved.length
-  const resumesGenerated = 96 + stored.filter((p) => p.product === 'resume').length
+  const resumesGenerated = 96 + stored.length
   const conversionRate = Number(((totalSales / Math.max(totalUsers, 1)) * 100).toFixed(1))
 
   return {
