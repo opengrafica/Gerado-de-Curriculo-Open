@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Source Serif 4", Georgia, serif;
+
+  /* Open Gráfica CMYK-inspired */
+  --color-brand-50: #e6f8fd;
+  --color-brand-100: #cceffb;
+  --color-brand-200: #99dff7;
+  --color-brand-300: #66cef3;
+  --color-brand-400: #33beef;
+  --color-brand-500: #00aeef;
+  --color-brand-600: #0090c7;
+  --color-brand-700: #00729f;
+  --color-brand-800: #005477;
+  --color-brand-900: #00364f;
+
+  --color-magenta-500: #ec008c;
+  --color-magenta-600: #c40074;
+  --color-yellow-400: #fff200;
+
+  --color-ink-50: #f7f7f8;
+  --color-ink-100: #eeeeef;
+  --color-ink-200: #d9d9dc;
+  --color-ink-300: #b5b5bb;
+  --color-ink-400: #888890;
+  --color-ink-500: #6a6a73;
+  --color-ink-600: #52525b;
+  --color-ink-700: #3f3f46;
+  --color-ink-800: #27272a;
+  --color-ink-900: #18181b;
+  --color-ink-950: #09090b;
+
+  --color-accent-400: #fff200;
+  --color-accent-500: #ec008c;
+  --color-accent-600: #c40074;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ink-50 text-ink-900 font-sans antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 174, 239, 0.14), transparent),
+      radial-gradient(ellipse 50% 40% at 100% 0%, rgba(236, 0, 140, 0.08), transparent);
+    min-height: 100dvh;
+  }
+
+  .dark body,
+  .dark {
+    @apply bg-ink-950 text-ink-100;
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 174, 239, 0.2), transparent),
+      radial-gradient(ellipse 50% 40% at 100% 0%, rgba(236, 0, 140, 0.12), transparent);
+  }
+
+  ::selection {
+    @apply bg-brand-200 text-brand-900;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .mesh-bg {
+    background-image:
+      linear-gradient(135deg, rgba(0, 174, 239, 0.1) 0%, transparent 50%),
+      linear-gradient(225deg, rgba(236, 0, 140, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 20% 80%, rgba(255, 242, 0, 0.08), transparent 40%);
+  }
+
+  .dark .mesh-bg {
+    background-image:
+      linear-gradient(135deg, rgba(0, 174, 239, 0.16) 0%, transparent 50%),
+      linear-gradient(225deg, rgba(236, 0, 140, 0.12) 0%, transparent 40%),
+      radial-gradient(circle at 20% 80%, rgba(255, 242, 0, 0.06), transparent 40%);
+  }
+}
