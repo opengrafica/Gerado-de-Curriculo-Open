@@ -1,4 +1,5 @@
 import { getSupabase } from '@/lib/supabase'
+import { attributionForSignup } from '@/lib/traffic'
 import type { UserProfile } from '@/types'
 
 const SUPER_ADMIN_EMAIL = 'opengraficaoficial@gmail.com'
@@ -38,6 +39,7 @@ export async function ensureProfile(params: {
   id: string
   email: string
   fullName?: string
+  phone?: string
 }) {
   const supabase = getSupabase()
   if (!supabase) return
@@ -46,14 +48,47 @@ export async function ensureProfile(params: {
     ? `${params.fullName.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase()}${Math.floor(Math.random() * 900 + 100)}`
     : `CJ${Math.floor(Math.random() * 900000 + 100000)}`
 
+  const attribution = attributionForSignup()
+
   await supabase.from('users').upsert(
     {
       id: params.id,
       email: params.email,
       full_name: params.fullName || params.email.split('@')[0],
+      phone: params.phone || null,
       is_admin: isSuperAdminEmail(params.email),
       affiliate_code: isSuperAdminEmail(params.email) ? 'OPENGRAFICA' : code,
+      traffic_source: attribution.traffic_source,
+      utm_source: attribution.utm_source,
+      utm_medium: attribution.utm_medium,
+      utm_campaign: attribution.utm_campaign,
+      utm_content: attribution.utm_content,
+      utm_term: attribution.utm_term,
+      landing_path: attribution.landing_path,
+      first_seen_at: new Date().toISOString(),
     },
     { onConflict: 'id', ignoreDuplicates: true },
   )
+
+  const { data: existing } = await supabase
+    .from('users')
+    .select('traffic_source, phone')
+    .eq('id', params.id)
+    .maybeSingle()
+
+  const weakSource = !existing?.traffic_source || existing.traffic_source === 'direto'
+  const patch: Record<string, unknown> = {}
+  if (params.phone && !existing?.phone) patch.phone = params.phone
+  if (weakSource && attribution.traffic_source) {
+    patch.traffic_source = attribution.traffic_source
+    patch.utm_source = attribution.utm_source
+    patch.utm_medium = attribution.utm_medium
+    patch.utm_campaign = attribution.utm_campaign
+    patch.utm_content = attribution.utm_content
+    patch.utm_term = attribution.utm_term
+    patch.landing_path = attribution.landing_path
+  }
+  if (Object.keys(patch).length) {
+    await supabase.from('users').update(patch).eq('id', params.id)
+  }
 }

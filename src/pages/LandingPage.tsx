@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Sparkles, FileDown, Briefcase, Zap, LayoutTemplate, ArrowRight, CheckCircle2 } from 'lucide-react'
@@ -6,18 +5,13 @@ import { Button } from '@/components/ui/Button'
 import { Container, Section, Badge } from '@/components/ui/Container'
 import { BrandLogo } from '@/components/ui/BrandLogo'
 import { BENEFITS, TEMPLATES } from '@/data/constants'
-import { PRICE_RESUME } from '@/types'
-import { getResumePrice } from '@/lib/pricing'
+import { useResumePrice } from '@/hooks/useResumePrice'
 
 const icons = [Briefcase, FileDown, CheckCircle2, Zap, LayoutTemplate]
 
 export function LandingPage() {
   const navigate = useNavigate()
-  const [price, setPrice] = useState(PRICE_RESUME)
-
-  useEffect(() => {
-    void getResumePrice().then(setPrice)
-  }, [])
+  const price = useResumePrice()
 
   return (
     <div className="mesh-bg">
@@ -168,7 +162,7 @@ export function LandingPage() {
             <div className="relative">
               <h2 className="text-3xl font-bold">Pronto para se candidatar?</h2>
               <p className="mx-auto mt-3 max-w-lg text-white/75">
-                Crie agora, pague R$4,90 no Pix e baixe seu currículo OPEN.
+                Crie agora, pague R${price.toFixed(2).replace('.', ',')} no Pix e baixe seu currículo OPEN.
               </p>
               <Button size="lg" className="mt-8 bg-[#00AEEF] hover:bg-[#0090c7]" onClick={() => navigate('/criar')}>
                 Criar meu currículo agora

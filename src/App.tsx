@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LandingPage } from '@/pages/LandingPage'
@@ -12,10 +13,19 @@ import { MyResumesPage } from '@/pages/MyResumesPage'
 import { AdminPage } from '@/pages/AdminPage'
 import { ForgotPasswordPage, LoginPage, RegisterPage } from '@/pages/AuthPages'
 import { RequireAdmin, RequireAuth } from '@/components/auth/RequireAuth'
+import { captureTrafficAttribution } from '@/lib/traffic'
+
+function TrafficCapture() {
+  useEffect(() => {
+    captureTrafficAttribution()
+  }, [])
+  return null
+}
 
 export default function App() {
   return (
     <BrowserRouter>
+      <TrafficCapture />
       <Routes>
         <Route element={<AppLayout />}>
           <Route index element={<LandingPage />} />

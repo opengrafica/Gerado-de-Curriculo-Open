@@ -2,6 +2,15 @@ import { getSupabase } from '@/lib/supabase'
 import { PRICE_RESUME } from '@/types'
 
 const LOCAL_PRICE_KEY = 'cj_resume_price'
+export const PRICE_UPDATED_EVENT = 'cj:price-updated'
+
+function notifyPrice(price: number) {
+  try {
+    window.dispatchEvent(new CustomEvent(PRICE_UPDATED_EVENT, { detail: price }))
+  } catch {
+    // ignore (SSR / non-browser)
+  }
+}
 
 export async function getResumePrice(): Promise<number> {
   const supabase = getSupabase()
@@ -25,9 +34,11 @@ export async function getResumePrice(): Promise<number> {
 export async function setResumePrice(price: number): Promise<number> {
   const safe = Math.max(0.01, Number(Number(price).toFixed(2)))
   localStorage.setItem(LOCAL_PRICE_KEY, String(safe))
+  notifyPrice(safe)
+
   const supabase = getSupabase()
   if (supabase) {
-    await supabase.from('app_settings').upsert(
+    const { error } = await supabase.from('app_settings').upsert(
       {
         key: 'pricing',
         value: { resume: safe },
@@ -35,6 +46,8 @@ export async function setResumePrice(price: number): Promise<number> {
       },
       { onConflict: 'key' },
     )
+    if (error) throw error
   }
+  notifyPrice(safe)
   return safe
 }

@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/Button'
 import { Container } from '@/components/ui/Container'
 import { Field, Input } from '@/components/ui/Input'
 import { useAppStore } from '@/store/appStore'
-import { PRICE_RESUME } from '@/types'
 import {
   applyCoupon,
   approveDemoPix,
@@ -15,29 +14,19 @@ import {
   type PixPaymentResult,
 } from '@/lib/mercadopago'
 import { TEMPLATES } from '@/data/constants'
-import { getResumePrice } from '@/lib/pricing'
 import { markResumePaid, saveResumeToCloud } from '@/lib/resumes'
+import { useResumePrice } from '@/hooks/useResumePrice'
 
 export function PaymentPage() {
   const navigate = useNavigate()
   const { resume, couponCode, setCouponCode, setPaid, user, setResume } = useAppStore()
-  const [basePrice, setBasePrice] = useState(PRICE_RESUME)
+  const basePrice = useResumePrice()
   const [loading, setLoading] = useState(false)
   const [couponMsg, setCouponMsg] = useState('')
   const [pix, setPix] = useState<PixPaymentResult | null>(null)
   const [copied, setCopied] = useState(false)
   const [polling, setPolling] = useState(false)
   const [statusMsg, setStatusMsg] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-    getResumePrice().then((price) => {
-      if (!cancelled) setBasePrice(price)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const pricing = useMemo(() => applyCoupon(basePrice, couponCode), [basePrice, couponCode])
   const template = TEMPLATES.find((t) => t.id === resume.templateId)

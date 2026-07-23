@@ -6,6 +6,7 @@ import { Field, Input } from '@/components/ui/Input'
 import { useAppStore } from '@/store/appStore'
 import { getSupabase } from '@/lib/supabase'
 import { ensureProfile, fetchUserProfile, isSuperAdminEmail } from '@/lib/auth'
+import { attributionForSignup, captureTrafficAttribution } from '@/lib/traffic'
 
 function safeNext(raw: string | null, isAdmin: boolean) {
   if (raw && raw.startsWith('/') && !raw.startsWith('//')) return raw
@@ -115,6 +116,7 @@ export function RegisterPage() {
   const setUser = useAppStore((s) => s.setUser)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -122,6 +124,8 @@ export function RegisterPage() {
     e.preventDefault()
     setLoading(true)
     try {
+      captureTrafficAttribution()
+      const attribution = attributionForSignup()
       const supabase = getSupabase()
       if (supabase) {
         const { data, error } = await supabase.auth.signUp({
@@ -130,18 +134,21 @@ export function RegisterPage() {
           options: {
             data: {
               full_name: fullName,
+              phone: phone || null,
+              ...attribution,
             },
           },
         })
         if (error) throw error
         if (data.user) {
-          await ensureProfile({ id: data.user.id, email, fullName })
+          await ensureProfile({ id: data.user.id, email, fullName, phone })
           const profile = await fetchUserProfile(data.user.id, email)
           const isAdmin = Boolean(profile.isAdmin) || isSuperAdminEmail(email)
           setUser({
             id: data.user.id,
             email,
             fullName,
+            phone,
             isAdmin,
             affiliateCode: profile.affiliateCode,
             commissionPercent: profile.commissionPercent ?? 30,
@@ -158,6 +165,7 @@ export function RegisterPage() {
           id: crypto.randomUUID(),
           email,
           fullName,
+          phone,
           createdAt: new Date().toISOString(),
           affiliateCode: fullName.slice(0, 3).toUpperCase() + Math.floor(Math.random() * 999),
           commissionPercent: 30,
@@ -184,6 +192,9 @@ export function RegisterPage() {
         <form onSubmit={submit} className="mt-8 space-y-4 rounded-2xl border border-ink-200 bg-white p-6 dark:border-ink-700 dark:bg-ink-900">
           <Field label="Nome completo"><Input required value={fullName} onChange={(e) => setFullName(e.target.value)} /></Field>
           <Field label="E-mail"><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
+          <Field label="WhatsApp / telefone">
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" />
+          </Field>
           <Field label="Senha"><Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
           <Button className="w-full" loading={loading} type="submit">Cadastrar</Button>
           <p className="text-center text-sm">
